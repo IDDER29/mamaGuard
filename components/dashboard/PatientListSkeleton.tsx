@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/Card";
+import { Card } from "@/components/ui/card";
 
 interface PatientListSkeletonProps {
   count?: number;

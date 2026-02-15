@@ -29,24 +29,24 @@ export function SearchFiltersBar({
   onRefresh,
 }: SearchFiltersBarProps) {
   return (
-    <div className="bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center gap-4 flex-1 min-w-[300px]">
+    <div className="bg-white px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-[280px]">
         <div className="relative flex-1 max-w-md">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">
             search
           </span>
           <input
             type="text"
             value={searchQuery}
             onChange={onSearchChange}
-            placeholder="Search by name, phone, or ID..."
-            className="w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none transition-all"
+            placeholder="Search patients..."
+            className="w-full pl-10 pr-10 py-2 text-sm bg-slate-50/80 border border-slate-200/80 rounded-lg hover:bg-white hover:border-slate-300 focus:bg-white focus:border-teal-400 focus:ring-2 focus:ring-teal-100 outline-none transition-all duration-200 placeholder:text-slate-400"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={onClearSearch}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-colors duration-150 cursor-pointer"
               aria-label="Clear search"
             >
               <span className="material-symbols-outlined text-lg">close</span>
@@ -56,29 +56,30 @@ export function SearchFiltersBar({
         <button
           type="button"
           onClick={onToggleHighRisk}
-          className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-1.5 transition-all duration-200 cursor-pointer whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-offset-1 ${
             showHighRiskOnly
-              ? "bg-orange-500 text-white shadow-lg shadow-orange-200"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              ? "bg-rose-500 text-white shadow-sm hover:bg-rose-600 focus:ring-rose-300"
+              : "bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:text-slate-900 focus:ring-slate-200"
           }`}
         >
-          <span className="material-symbols-outlined text-sm">warning</span>
-          High Risk ({highRiskCount})
+          <span className="material-symbols-outlined text-base sm:text-lg">warning</span>
+          <span className="hidden sm:inline">High Risk</span>
+          <span className="font-semibold">({highRiskCount})</span>
         </button>
         {onToggleOverdue && (
           <button
             type="button"
             onClick={onToggleOverdue}
-            className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all cursor-pointer ${
+            className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium flex items-center gap-1.5 transition-all duration-200 cursor-pointer whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-offset-1 ${
               showOverdueOnly
-                ? "bg-red-500 text-white shadow-lg shadow-red-200"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                ? "bg-amber-500 text-white shadow-sm hover:bg-amber-600 focus:ring-amber-300"
+                : "bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:text-slate-900 focus:ring-slate-200"
             }`}
           >
-            <span className="material-symbols-outlined text-sm">
+            <span className="material-symbols-outlined text-base sm:text-lg">
               event_busy
             </span>
-            Overdue
+            <span className="hidden sm:inline">Overdue</span>
           </button>
         )}
         {onRefresh && (
@@ -86,11 +87,11 @@ export function SearchFiltersBar({
             type="button"
             onClick={onRefresh}
             disabled={refreshing}
-            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50 transition-colors cursor-pointer"
+            className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all duration-150 cursor-pointer"
             aria-label="Refresh patient list"
           >
             <span
-              className={`material-symbols-outlined text-[22px] ${refreshing ? "animate-spin" : ""}`}
+              className={`material-symbols-outlined text-[20px] ${refreshing ? "animate-spin" : ""}`}
             >
               refresh
             </span>
@@ -101,10 +102,11 @@ export function SearchFiltersBar({
       <button
         type="button"
         onClick={onNewPatient}
-        className="bg-teal-600 text-white px-6 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-teal-700 transition-all shadow-md cursor-pointer"
+        className="bg-teal-600 text-white px-4 sm:px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-teal-700 active:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow cursor-pointer"
       >
-        <span className="material-symbols-outlined">person_add</span>
-        Enroll New Mother
+        <span className="material-symbols-outlined text-[20px]">person_add</span>
+        <span className="hidden sm:inline">Enroll New Mother</span>
+        <span className="sm:hidden">New</span>
       </button>
     </div>
   );
