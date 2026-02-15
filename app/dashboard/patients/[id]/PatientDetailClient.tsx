@@ -5,14 +5,22 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import type { Patient } from "@/types";
-import type { MessageRow } from "./page";
 import { updatePatientFields } from "@/app/actions/patients";
+
+export interface MessageRow {
+  id: string;
+  conversation_id: string;
+  role: "user" | "assistant";
+  content: string;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
 
 interface PatientDetailClientProps {
   patient: Patient;
   patientId: string;
   conversationId: string | null;
-  initialMessages: MessageRow[];
+  initialMessages: MessageRow[]; // Assumed to be sorted ASC (oldest first) from server
 }
 
 function formatDate(str: string | null): string {
@@ -34,17 +42,22 @@ export function PatientDetailClient({
 }: PatientDetailClientProps) {
   const router = useRouter();
   const [patient, setPatient] = useState<Patient>(initialPatient);
+  
+  // We maintain messages in chronological order (Oldest -> Newest)
   const [messages, setMessages] = useState<MessageRow[]>(initialMessages);
+  
   const [editOpen, setEditOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [editSaving, setEditSaving] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Sync state if server props change
   useEffect(() => {
     setMessages(initialMessages);
   }, [initialMessages]);
 
+  // Scroll to bottom whenever messages update
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -55,8 +68,10 @@ export function PatientDetailClient({
   const handleSendMessage = useCallback(async () => {
     const text = inputValue.trim();
     if (!text || !conversationId || sending) return;
+
     setSending(true);
     setInputValue("");
+
     try {
       const res = await fetch("/api/whatsapp/send", {
         method: "POST",
@@ -67,23 +82,28 @@ export function PatientDetailClient({
           message: text,
         }),
       });
+
       const data = await res.json().catch(() => ({}));
+
       if (data.success && data.message) {
+        // APPEND to the end of the array to maintain chronological order
         setMessages((prev) => [
+          ...prev,
           {
             id: data.message.id,
             conversation_id: conversationId,
             role: "assistant",
             content: data.message.content,
-            metadata: null,
+            metadata: data.message.metadata || null,
             created_at: data.message.created_at,
           },
-          ...prev,
         ]);
       } else {
+        // Fallback to refresh if API response is unexpected
         router.refresh();
       }
-    } catch {
+    } catch (err) {
+      console.error("Send error:", err);
       router.refresh();
     } finally {
       setSending(false);
@@ -98,6 +118,7 @@ export function PatientDetailClient({
       const blood_type = (form.querySelector('[name="blood_type"]') as HTMLInputElement)?.value?.trim() || null;
       const due_date = (form.querySelector('[name="due_date"]') as HTMLInputElement)?.value?.trim() || null;
       const allergies = (form.querySelector('[name="allergies"]') as HTMLInputElement)?.value?.trim() || null;
+
       setEditSaving(true);
       const result = await updatePatientFields(patientId, {
         gestational_week: Number.isNaN(gestational_week) ? undefined : gestational_week,
@@ -106,6 +127,7 @@ export function PatientDetailClient({
         allergies,
       });
       setEditSaving(false);
+
       if (result.success) {
         setPatient((p) => ({
           ...p,
@@ -123,18 +145,20 @@ export function PatientDetailClient({
     [patientId, router]
   );
 
-  const latestMessageMeta = messages[0]?.metadata as { risk?: string } | undefined;
-  const dailySummaryRisk = latestMessageMeta?.risk ?? patient.risk_level;
+  const latestMessage = messages[messages.length - 1];
+  const metaRisk = latestMessage?.metadata && typeof latestMessage.metadata === "object" && "risk" in latestMessage.metadata
+    ? (latestMessage.metadata as { risk?: string }).risk
+    : undefined;
+  const dailySummaryRisk = (typeof metaRisk === "string" && metaRisk) ? metaRisk : patient.risk_level;
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 overflow-y-scroll">
+    <div className="flex flex-col h-screen bg-slate-50">
       {/* Top bar */}
       <header className="h-14 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/patients"
             className="text-slate-500 hover:text-slate-700 p-2 rounded-lg transition-colors"
-            aria-label="Back to patients"
           >
             <span className="material-symbols-outlined">arrow_back</span>
           </Link>
@@ -210,7 +234,7 @@ export function PatientDetailClient({
             </h2>
             <p className="text-sm text-teal-900">
               Latest risk: <strong className="capitalize">{dailySummaryRisk}</strong>.
-              {patient.medical_history?.notes ? ` Notes: ${patient.medical_history.notes.slice(0, 120)}${patient.medical_history.notes.length > 120 ? "…" : ""}` : " No additional notes."}
+              {patient.medical_history?.notes ? ` ${patient.medical_history.notes.slice(0, 100)}${patient.medical_history.notes.length > 100 ? "…" : ""}` : " No recent updates."}
             </p>
           </section>
 
@@ -219,24 +243,28 @@ export function PatientDetailClient({
               <span className="material-symbols-outlined text-slate-500 text-lg">chat</span>
               <h2 className="text-sm font-semibold text-slate-800">Conversation</h2>
             </div>
+            
+            {/* Chat Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
               {messages.length === 0 && (
-                <p className="text-sm text-slate-400 text-center py-8">No messages yet. Send a message to the mother via WhatsApp.</p>
+                <p className="text-sm text-slate-400 text-center py-8">No messages yet.</p>
               )}
-              {[...messages].reverse().map((msg) => (
+              
+              {/* No more .reverse() here. We render in array order. */}
+              {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`flex ${msg.role === "user" ? "justify-start" : "justify-end"}`}
                 >
                   <div
                     className={`max-w-[85%] rounded-2xl px-4 py-2.5 ${
                       msg.role === "user"
-                        ? "bg-teal-500 text-white rounded-br-md"
-                        : "bg-slate-100 text-slate-900 rounded-bl-md"
+                        ? "bg-slate-100 text-slate-900 rounded-bl-md" // Patient (User)
+                        : "bg-teal-500 text-white rounded-br-md"      // Doctor/AI (Assistant)
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                    <p className={`text-[10px] mt-1 ${msg.role === "user" ? "text-teal-100" : "text-slate-400"}`}>
+                    <p className="text-sm whitespace-pre-wrap wrap-break-word">{msg.content}</p>
+                    <p className={`text-[10px] mt-1 ${msg.role === "assistant" ? "text-teal-100" : "text-slate-400"}`}>
                       {formatMessageTime(msg.created_at)}
                     </p>
                   </div>
@@ -244,6 +272,7 @@ export function PatientDetailClient({
               ))}
               <div ref={chatEndRef} />
             </div>
+
             {conversationId && (
               <div className="p-3 border-t border-slate-100 flex gap-2">
                 <input
@@ -252,13 +281,13 @@ export function PatientDetailClient({
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
                   placeholder="Type a message..."
-                  className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                 />
                 <button
                   type="button"
                   onClick={handleSendMessage}
                   disabled={sending || !inputValue.trim()}
-                  className="px-4 py-2.5 rounded-xl bg-teal-500 text-white font-medium text-sm hover:bg-teal-600 disabled:opacity-50 transition-colors flex items-center gap-2"
+                  className="px-4 py-2.5 rounded-xl bg-teal-500 text-white font-medium text-sm hover:bg-teal-600 disabled:opacity-50 flex items-center gap-2"
                 >
                   {sending ? (
                     <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>

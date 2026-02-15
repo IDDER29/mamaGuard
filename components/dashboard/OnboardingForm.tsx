@@ -21,7 +21,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/Card"
 import { toast } from "sonner" // Optional: recommended for hackathons
 
 const patientSchema = z.object({
