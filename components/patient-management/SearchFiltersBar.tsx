@@ -1,5 +1,7 @@
 "use client";
 
+import { Search, X, TriangleAlert, CalendarX, RefreshCw, UserPlus } from "lucide-react";
+
 interface SearchFiltersBarProps {
   searchQuery: string;
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -32,15 +34,13 @@ export function SearchFiltersBar({
     <div className="bg-white px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-[280px]">
         <div className="relative flex-1 max-w-md">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">
-            search
-          </span>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-slate-400 pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
             onChange={onSearchChange}
             placeholder="Search patients..."
-            className="w-full pl-10 pr-10 py-2 text-sm bg-slate-50/80 border border-slate-200/80 rounded-lg hover:bg-white hover:border-slate-300 focus:bg-white focus:border-teal-400 focus:ring-2 focus:ring-teal-100 outline-none transition-all duration-200 placeholder:text-slate-400"
+            className="w-full pl-10 pr-10 py-2 text-sm bg-slate-50/80 border border-slate-200/80 rounded-lg hover:bg-white hover:border-slate-300 focus:bg-white focus:border-primary/50 focus:ring-2 focus:ring-primary/15 outline-none transition-all duration-200 placeholder:text-slate-400"
           />
           {searchQuery && (
             <button
@@ -49,7 +49,7 @@ export function SearchFiltersBar({
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 transition-colors duration-150 cursor-pointer"
               aria-label="Clear search"
             >
-              <span className="material-symbols-outlined text-lg">close</span>
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -62,7 +62,7 @@ export function SearchFiltersBar({
               : "bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:text-slate-900 focus:ring-slate-200"
           }`}
         >
-          <span className="material-symbols-outlined text-base sm:text-lg">warning</span>
+          <TriangleAlert className="h-4 w-4" />
           <span className="hidden sm:inline">High Risk</span>
           <span className="font-semibold">({highRiskCount})</span>
         </button>
@@ -76,9 +76,7 @@ export function SearchFiltersBar({
                 : "bg-slate-100/80 text-slate-700 hover:bg-slate-200 hover:text-slate-900 focus:ring-slate-200"
             }`}
           >
-            <span className="material-symbols-outlined text-base sm:text-lg">
-              event_busy
-            </span>
+            <CalendarX className="h-4 w-4" />
             <span className="hidden sm:inline">Overdue</span>
           </button>
         )}
@@ -90,11 +88,7 @@ export function SearchFiltersBar({
             className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all duration-150 cursor-pointer"
             aria-label="Refresh patient list"
           >
-            <span
-              className={`material-symbols-outlined text-[20px] ${refreshing ? "animate-spin" : ""}`}
-            >
-              refresh
-            </span>
+            <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
           </button>
         )}
       </div>
@@ -102,9 +96,9 @@ export function SearchFiltersBar({
       <button
         type="button"
         onClick={onNewPatient}
-        className="bg-teal-600 text-white px-4 sm:px-5 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-teal-700 active:bg-teal-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow cursor-pointer"
+        className="bg-primary text-white px-4 sm:px-5 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200 shadow-glow-sm hover:-translate-y-0.5 cursor-pointer"
       >
-        <span className="material-symbols-outlined text-[20px]">person_add</span>
+        <UserPlus className="h-5 w-5" />
         <span className="hidden sm:inline">Enroll New Mother</span>
         <span className="sm:hidden">New</span>
       </button>

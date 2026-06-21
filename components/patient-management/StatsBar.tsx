@@ -1,5 +1,6 @@
 "use client";
 
+import { Users, Siren, TriangleAlert, CircleCheck } from "lucide-react";
 import type { Patient } from "@/types";
 
 interface StatsBarProps {
@@ -17,10 +18,10 @@ export function StatsBar({ patients }: StatsBarProps) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-0 bg-white overflow-x-auto">
-      <StatBox label="Total Patients" value={stats.total} color="text-slate-900" bgColor="bg-slate-100/80" icon="groups" />
-      <StatBox label="Critical Care" value={stats.critical} color="text-rose-600" bgColor="bg-rose-50" icon="emergency" />
-      <StatBox label="High Risk" value={stats.high} color="text-orange-600" bgColor="bg-orange-50" icon="priority_high" />
-      <StatBox label="Stable" value={stats.stable} color="text-emerald-600" bgColor="bg-emerald-50" icon="check_circle" />
+      <StatBox label="Total Patients" value={stats.total} color="text-slate-900" bgColor="bg-slate-100/80 text-slate-600" Icon={Users} />
+      <StatBox label="Critical Care" value={stats.critical} color="text-rose-600" bgColor="bg-rose-50 text-rose-600" Icon={Siren} />
+      <StatBox label="High Risk" value={stats.high} color="text-orange-600" bgColor="bg-orange-50 text-orange-600" Icon={TriangleAlert} />
+      <StatBox label="Stable" value={stats.stable} color="text-emerald-600" bgColor="bg-emerald-50 text-emerald-600" Icon={CircleCheck} />
     </div>
   );
 }
@@ -30,18 +31,18 @@ function StatBox({
   value,
   color,
   bgColor,
-  icon,
+  Icon,
 }: {
   label: string;
   value: number;
   color: string;
   bgColor: string;
-  icon: string;
+  Icon: React.ElementType;
 }) {
   return (
-    <div className="group p-4 md:p-5 border-r border-slate-200/60 last:border-r-0 flex items-center gap-3 min-w-[160px] hover:bg-slate-50/50 transition-colors duration-200">
-      <div className={`flex-shrink-0 p-2.5 rounded-xl ${bgColor} ${color} transition-transform duration-200 group-hover:scale-105`}>
-        <span className="material-symbols-outlined text-[22px]">{icon}</span>
+    <div className="group p-4 md:p-5 border-r border-slate-200/60 last:border-r-0 flex items-center gap-3 min-w-[160px] hover:bg-slate-50/60 transition-colors duration-200">
+      <div className={`shrink-0 p-2.5 rounded-xl ring-1 ring-current/10 ${bgColor} transition-transform duration-200 group-hover:scale-105`}>
+        <Icon className="h-5 w-5" aria-hidden="true" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">{label}</p>
