@@ -9,6 +9,32 @@ Legend — Effort: S (<30m), M (~1–2h), L (half day+). Risk: how likely it bre
 
 ---
 
+## Execution status
+
+| Item | Status |
+|------|--------|
+| 0.1 Un-track secrets / `.env.example` / gitignore | ✅ done (🤖) — 👤 still must **rotate keys** + decide on history scrub |
+| 0.2 Green build (fix all TS errors) | ✅ done — `tsc`, `lint`, `build` all pass |
+| 1.1 Nav/hero anchors | ✅ done |
+| 1.2 Cron `medical_notes` bug | ✅ done |
+| 1.3 Model typo | ✅ done |
+| 1.4 Wire voice replies | ✅ done (gated on ElevenLabs config) |
+| 2.1 RLS | ✅ SQL written in `schema.sql` — 👤 must apply/verify in Supabase console |
+| 2.2 Auth gate | ✅ done (`DISABLE_AUTH` flag; verified 307→/login when off, 200 when on) |
+| 3.1 Sync `schema.sql` | ✅ done |
+| 3.2 Real triage board | ✅ done |
+| 4.1 Mobile audit | ◑ partial — triage header made responsive; full per-page audit still open |
+| 4.2 Consolidate icons | ⏸ deferred — 134 usages/32 files, high regression risk; not a "refine" change |
+| 4.3 Remove duplicate header | ✅ done (dropped duplicate doctor profile) |
+| 4.4 Dashboard dark mode | ⏸ deferred (optional in plan; dashboard intentionally light) |
+| 5.1 RTL | ◑ done for chat + voice transcripts (`dir="auto"`); full RTL layout still open |
+| 6.1 CI | ✅ done (`.github/workflows/ci.yml`) |
+| 6.2 Update CLAUDE.md | ✅ done |
+
+✅ = complete · ◑ = partial · ⏸ = deferred (with rationale) · 👤 = needs a human
+
+---
+
 ## Phase 0 — Stop the bleeding (do first)
 
 Critical: secrets exposure and a build that cannot ship.
