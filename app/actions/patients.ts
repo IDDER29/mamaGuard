@@ -47,10 +47,13 @@ function mapCheckupTimeToTime(value: string | null | undefined): string | null {
   return null;
 }
 
-/** Personalized welcome in Moroccan Darija mentioning name and gestational week. */
+/** Personalized welcome in Moroccan Darija mentioning name and gestational week.
+ *  Includes a clinical safety disclaimer (Plan 1.2): danger signs -> seek care now. */
 function buildWelcomeMessage(fullName: string, gestationalWeek: number): string {
   const name = fullName?.trim() || "l-mama";
-  return `Salam ${name}! 🧸 Ana Mama AI, l-moussa3ida dyalk f l-7aml. Tsjalti m3ana l-youm. Nti daba f l-osbou3 ${gestationalWeek}. Ghadi nbqa nti3lk l-akhbar dima bach n-t'amno 3lik. Ila 7ssiti b chi haja, goliha liya hna! 🇲🇦`;
+  return `Salam ${name}! 🧸 Ana Mama AI, l-moussa3ida dyalk f l-7aml. Tsjalti m3ana l-youm. Nti daba f l-osbou3 ${gestationalWeek}. Ghadi nbqa nti3lk l-akhbar dima bach n-t'amno 3lik. Ila 7ssiti b chi haja, goliha liya hna! 🇲🇦
+
+⚠️ Mouhim: ana machi 3iwad 3la tbib. Ila 7ssiti b chi 3arad khatir bhal nazif (dem), sda3 qwi bezzaf, l-bsar mcha-wach, chi tachannoj, wla l-bebe ma bqach kaytharrak — sir l-aqrab sbitar daba wla 3ayyti l-ist3ajalat.`;
 }
 
 export type RegisterPatientResult =

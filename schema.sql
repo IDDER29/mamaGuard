@@ -65,16 +65,33 @@ CREATE TABLE messages (
   created_at       timestamptz NOT NULL DEFAULT now()
 );
 
--- 4. ALERTS (dashboard workflow)
+-- 4. ALERTS (dashboard workflow — human-in-the-loop triage, Plan 1.2)
 CREATE TABLE alerts (
-  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  patient_id    uuid NOT NULL REFERENCES patients (id) ON DELETE CASCADE,
-  message_id    uuid REFERENCES messages (id),
-  symptom_name  text,
-  urgency       text NOT NULL CHECK (urgency IN ('low', 'medium', 'high', 'critical')),
-  status        text DEFAULT 'active' CHECK (status IN ('active', 'acknowledged', 'resolved')),
-  doctor_notes  text,
-  created_at    timestamptz NOT NULL DEFAULT now()
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id      uuid NOT NULL REFERENCES patients (id) ON DELETE CASCADE,
+  message_id      uuid REFERENCES messages (id),
+  symptom_name    text,
+  urgency         text NOT NULL CHECK (urgency IN ('low', 'medium', 'high', 'critical')),
+  status          text DEFAULT 'active' CHECK (status IN ('active', 'acknowledged', 'resolved')),
+  assigned_to     uuid,            -- clinician (auth.users id) who owns the alert
+  acknowledged_at timestamptz,
+  acknowledged_by uuid,
+  resolved_at     timestamptz,
+  resolved_by     uuid,
+  doctor_notes    text,
+  created_at      timestamptz NOT NULL DEFAULT now()
+);
+
+-- 5. AUDIT LOG (immutable trail of triage decisions & clinician actions, Plan 1.2)
+CREATE TABLE audit_log (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor       text,              -- 'system' | clinician id/email
+  action      text NOT NULL,     -- e.g. 'triage.assessed','alert.acknowledged','alert.resolved'
+  entity_type text,              -- 'alert' | 'patient' | 'message'
+  entity_id   uuid,
+  patient_id  uuid REFERENCES patients (id) ON DELETE SET NULL,
+  detail      jsonb,             -- urgency, triage_version, signs, notes, etc.
+  created_at  timestamptz NOT NULL DEFAULT now()
 );
 
 -- Indexing for performance
@@ -82,6 +99,8 @@ CREATE INDEX idx_messages_conv ON messages (conversation_id);
 CREATE INDEX idx_alerts_status ON alerts (status) WHERE status = 'active';
 CREATE INDEX idx_patients_phone ON patients (phone_number);
 CREATE INDEX idx_conversations_patient ON conversations (patient_id);
+CREATE INDEX idx_audit_patient ON audit_log (patient_id);
+CREATE INDEX idx_audit_entity ON audit_log (entity_type, entity_id);
 
 -- Keep updated_at fresh on patients
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -103,8 +122,9 @@ ALTER TABLE patients      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alerts        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_log     ENABLE ROW LEVEL SECURITY;
 
--- Authenticated clinicians: full access to all clinical data.
+-- Authenticated clinicians: full access to clinical data.
 CREATE POLICY "authenticated full access" ON patients
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated full access" ON conversations
@@ -113,6 +133,9 @@ CREATE POLICY "authenticated full access" ON messages
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated full access" ON alerts
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
+-- Audit log: clinicians may read; only the service role writes (immutability).
+CREATE POLICY "authenticated read audit" ON audit_log
+  FOR SELECT TO authenticated USING (true);
 
 -- DEMO ONLY (uncomment to allow the unauthenticated dashboard to read data while
 -- DISABLE_AUTH=true). Remove before production — this exposes patient data.
