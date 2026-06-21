@@ -9,9 +9,12 @@ npm run dev      # Dev server (Next.js, http://localhost:3000)
 npm run build    # Production build
 npm start        # Serve production build
 npm run lint     # ESLint (flat config in eslint.config.mjs)
+npx tsc --noEmit # Type-check only
 ```
 
 There is **no test framework** configured in this project. Do not assume a test runner exists.
+The build, lint, and type-check are all green and enforced in CI (`.github/workflows/ci.yml`)
+on every PR — keep them passing.
 
 ## What this is
 
@@ -40,24 +43,23 @@ This is the part that requires reading multiple files to understand. The flow wh
 
 `lib/speak.ts` (ElevenLabs TTS, `eleven_multilingual_v2`) exists but voice replies are **not yet wired into the webhook** — only text is sent back.
 
-`app/api/cron/check-in/route.ts` is a Vercel Cron job (schedule in `vercel.json`) that proactively messages every patient. It is **gated by `Authorization: Bearer ${CRON_SECRET}`**. Note: it reads `patient.medical_notes`, a column that does not exist in the current schema (`medical_history` is the real column) — treat cron code as partially stale.
+`app/api/cron/check-in/route.ts` is a Vercel Cron job (schedule in `vercel.json`) that proactively messages every patient. It is **gated by `Authorization: Bearer ${CRON_SECRET}`** and reads `medical_history.notes` for context.
 
 `app/api/whatsapp/send/route.ts` is a manual send endpoint.
 
 ### Data layer & a key snake_case convention
 
-- Supabase clients: `utils/supabase/server.ts` (server components / route handlers / server actions, cookie-based) and `utils/supabase/client.ts` (browser). Always pick the right one for the context.
+- Supabase clients: `utils/supabase/server.ts` (server components / route handlers, cookie-based), `utils/supabase/client.ts` (browser), and `utils/supabase/admin.ts` (**service-role**, for sessionless trusted server writes — webhook, cron, server actions; bypasses RLS, falls back to the anon server client when `SUPABASE_SERVICE_ROLE_KEY` is unset). Always pick the right one for the context; never import `admin.ts` into client code.
 - The DB is **snake_case**; the app's `Patient` type (`types/index.ts`) is also snake_case but Supabase rows come back as loosely-typed records. **Always run rows through `normalizePatient()` in `lib/patients.ts`** before using them in the UI — it coerces types and supplies defaults. `mapPatientToManagementCard()` converts a `Patient` into the dashboard card shape (derives status, overdue, gestational progress %).
 - Write path for new patients: the **server action** `app/actions/patients.ts` `registerPatient()` (`"use server"`). It maps the rich onboarding form to DB columns, then sends a Darija welcome message over WhatsApp.
 
-### ⚠️ schema.sql is incomplete vs. the code
+### schema.sql is the source of truth (kept in sync)
 
-`schema.sql` defines only the minimal tables (`patients`, `conversations`, `messages`, `alerts`). But `app/actions/patients.ts` and `types/index.ts` reference **many additional `patients` columns** (`full_name`, `date_of_birth`, `national_id`, `trimester`, `blood_type`, `previous_pregnancies`, `current_medications`, `allergies`, `emergency_contact_*`, `spouse_partner_*`, `preferred_checkup_time`, `voice_reporting_frequency`, `has_smartphone`, `location_address`, etc.). The live Supabase instance has these columns; `schema.sql` has not been kept in sync. If you change patient fields, update both the action/types AND `schema.sql`.
+`schema.sql` now matches the code: all `patients` columns the app reads/writes, an `updated_at` trigger, indexes, and **Row Level Security** policies (authenticated clinicians get full access; server writes use the service role to bypass RLS; anon gets nothing unless you opt into the commented demo policies). If you change patient fields, update the action/types **and** `schema.sql` together.
 
-### ⚠️ Dashboard uses mock data; Patient Management uses real data
+### Dashboard data: triage board + patient management both use real data
 
-This is an easy trap:
-- `app/dashboard/page.tsx` (the triage board) is a **client component built entirely on `lib/mockData.ts`** — it does not touch Supabase.
+- `app/dashboard/page.tsx` (the triage board) uses **real Supabase data** via `usePatientData()`, mapping patients to a local `TriageCard` shape (`risk_level` critical→critical, high→warning). `lib/mockData.ts` is now only used for the sidebar/header `mockDoctor`/`mockStats` placeholders.
 - `app/dashboard/patients/page.tsx` (patient management) uses **real Supabase data** via `usePatientData()` (`app/dashboard/patients/hooks/`), including a `postgres_changes` **realtime subscription** that silently re-fetches on any `patients` table change.
 - `app/dashboard/patients/[id]/page.tsx` is a **server component** that loads the patient + conversation + messages from Supabase and passes them to a client component.
 
@@ -65,7 +67,7 @@ There are also several `lib/mock*.ts` files (`mockData`, `mockPatientData`, `moc
 
 ### Routing & middleware
 
-- `proxy.ts` at the repo root is the **Next.js 16 middleware** (Next 16 renamed `middleware.ts` → `proxy.ts`). It refreshes the Supabase session on every non-API request. The `/dashboard` auth-redirect is **deliberately commented out** ("FOR THE HACKATHON DEMO") — there is currently no real auth gate; `/login` and `/register` pages exist but aren't enforced.
+- `proxy.ts` at the repo root is the **Next.js 16 middleware** (Next 16 renamed `middleware.ts` → `proxy.ts`). It refreshes the Supabase session on every non-API request and **gates `/dashboard` behind auth** (redirects to `/login` when signed out) — **unless `DISABLE_AUTH=true`**, which keeps the demo open. Secure by default; set `DISABLE_AUTH=true` in the env for hackathon/demo mode.
 - Route groups: `app/(marketing)/` is the public landing page (composed of `components/sections/*`). `app/dashboard/` is the clinical app with its own `layout.tsx` (sidebar shell).
 
 ### Component organization
@@ -85,8 +87,8 @@ There are also several `lib/mock*.ts` files (`mockData`, `mockPatientData`, `moc
 
 ## Environment & secrets
 
-Required env vars (see `.env`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `VERIFY_TOKEN` (webhook handshake), `OPENAI_API_KEY` / `OPENAI_MODEL` (or `MINIMAX_API_KEY`), `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID`, and `CRON_SECRET` (cron auth).
+Required env vars (see `.env.example`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server writes / RLS bypass), `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `VERIFY_TOKEN` (webhook handshake), `OPENAI_API_KEY` / `OPENAI_MODEL` (or `MINIMAX_API_KEY`), `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID`, `CRON_SECRET` (cron auth), and `DISABLE_AUTH` (set `true` for open demo).
 
-**Security note:** `.env` is currently committed to the repo with live API keys and is **not** in `.gitignore`. Do not add further secrets to tracked files; if asked to handle secrets, flag that these committed keys should be rotated and `.env` git-ignored.
+**Security note:** `.env` is now **git-ignored**; copy `.env.example` and fill it in locally. The keys previously committed to git history must be considered compromised — **rotate them**. Never add real secrets to tracked files.
 
 `next.config.ts` whitelists remote image hosts (`lh3.googleusercontent.com`, `api.dicebear.com` — used for generated patient avatars, `images.unsplash.com`).

@@ -21,7 +21,7 @@ export function ActiveFiltersDisplay({
         </span>
         {searchQuery && (
           <span className="text-blue-700">
-            matching <strong className="font-medium">"{searchQuery}"</strong>
+            matching <strong className="font-medium">&ldquo;{searchQuery}&rdquo;</strong>
           </span>
         )}
         {showHighRiskOnly && (

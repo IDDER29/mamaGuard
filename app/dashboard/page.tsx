@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { mockDoctor } from "@/lib/mockData";
 import { usePatientData } from "@/app/dashboard/patients/hooks";
 import type { Patient } from "@/types";
 import {
@@ -175,7 +174,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100/50 to-white">
       <div className="container mx-auto px-6 py-6 max-w-[1600px]">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
               <h1 className="text-3xl font-bold text-slate-900">
@@ -216,25 +215,6 @@ export default function DashboardPage() {
               <Plus className="h-4 w-4" />
               Add Patient
             </Button>
-            {/* Doctor Profile */}
-            <div className="hidden lg:flex items-center gap-3 pl-4 border-l border-slate-200">
-              <div className="text-right">
-                <div className="text-sm font-semibold text-slate-900">
-                  {mockDoctor.name}
-                </div>
-                <div className="text-xs text-slate-500">{mockDoctor.role}</div>
-              </div>
-              <Avatar className="h-10 w-10 ring-2 ring-blue-100 shadow-sm">
-                <AvatarImage
-                  src={mockDoctor.avatarUrl}
-                  alt={mockDoctor.name}
-                  className="object-cover"
-                />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
-                  {getPatientInitials(mockDoctor.name)}
-                </AvatarFallback>
-              </Avatar>
-            </div>
           </div>
         </div>
 

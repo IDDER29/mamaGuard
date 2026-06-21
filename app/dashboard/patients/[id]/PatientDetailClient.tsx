@@ -263,7 +263,7 @@ export function PatientDetailClient({
                         : "bg-teal-500 text-white rounded-br-md"      // Doctor/AI (Assistant)
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap wrap-break-word">{msg.content}</p>
+                    <p dir="auto" className="text-sm whitespace-pre-wrap wrap-break-word">{msg.content}</p>
                     <p className={`text-[10px] mt-1 ${msg.role === "assistant" ? "text-teal-100" : "text-slate-400"}`}>
                       {formatMessageTime(msg.created_at)}
                     </p>

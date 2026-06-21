@@ -172,7 +172,7 @@ export default function VoiceTimeline({ messages, patientAvatar, patientName }: 
                     </button>
                   </div>
                   
-                  <p className="text-slate-700 text-sm sm:text-base leading-relaxed mb-3">
+                  <p dir="auto" className="text-slate-700 text-sm sm:text-base leading-relaxed mb-3">
                     {highlightTerms(message.transcript, message.highlightedTerms)}
                   </p>
                   
