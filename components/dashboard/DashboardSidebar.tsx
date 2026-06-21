@@ -17,6 +17,7 @@ import {
   FileText,
   Shield,
   Circle,
+  Siren,
 } from "lucide-react";
 import type { Doctor } from "@/types";
 import { createClient } from "@/utils/supabase/client";
@@ -105,6 +106,11 @@ export function SidebarContent({ doctor, onNavigate }: SidebarContentProps) {
       label: "Triage Board",
       badge: 3,
       priority: "critical",
+    },
+    {
+      href: "/dashboard/alerts",
+      icon: Siren,
+      label: "Triage Queue",
     },
     {
       href: "/dashboard/patients",

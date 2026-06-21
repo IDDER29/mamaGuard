@@ -8,14 +8,20 @@ import {
   ArrowLeft,
   Stethoscope,
   CalendarDays,
+  CalendarPlus,
   MessagesSquare,
   Send,
   Loader2,
   Siren,
   Pencil,
+  Plus,
 } from "lucide-react";
 import type { Patient } from "@/types";
 import { updatePatientFields } from "@/app/actions/patients";
+import {
+  createAppointment,
+  type AppointmentRow,
+} from "@/app/actions/appointments";
 
 export interface MessageRow {
   id: string;
@@ -31,6 +37,7 @@ interface PatientDetailClientProps {
   patientId: string;
   conversationId: string | null;
   initialMessages: MessageRow[]; // Assumed to be sorted ASC (oldest first) from server
+  initialAppointments?: AppointmentRow[];
 }
 
 const RISK_BADGE: Record<string, string> = {
@@ -67,9 +74,36 @@ export function PatientDetailClient({
   patientId,
   conversationId,
   initialMessages,
+  initialAppointments = [],
 }: PatientDetailClientProps) {
   const router = useRouter();
   const [patient, setPatient] = useState<Patient>(initialPatient);
+  const [appointments, setAppointments] = useState<AppointmentRow[]>(initialAppointments);
+  const [newApptAt, setNewApptAt] = useState("");
+  const [newApptLocation, setNewApptLocation] = useState("");
+  const [savingAppt, setSavingAppt] = useState(false);
+
+  useEffect(() => {
+    setAppointments(initialAppointments);
+  }, [initialAppointments]);
+
+  const handleAddAppointment = useCallback(async () => {
+    if (!newApptAt || savingAppt) return;
+    setSavingAppt(true);
+    const res = await createAppointment({
+      patientId,
+      scheduledAt: new Date(newApptAt).toISOString(),
+      location: newApptLocation.trim() || undefined,
+    });
+    setSavingAppt(false);
+    if (res.success) {
+      setNewApptAt("");
+      setNewApptLocation("");
+      router.refresh();
+    } else {
+      alert(res.error || "Failed to schedule appointment");
+    }
+  }, [newApptAt, newApptLocation, savingAppt, patientId, router]);
 
   // We maintain messages in chronological order (Oldest -> Newest)
   const [messages, setMessages] = useState<MessageRow[]>(initialMessages);
@@ -250,6 +284,72 @@ export function PatientDetailClient({
                 </li>
               ))}
             </ul>
+          </section>
+
+          {/* Appointments (Plan 2.1) */}
+          <section className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+              <CalendarPlus className="h-4.5 w-4.5 text-primary" />
+              <h2 className="text-sm font-semibold text-slate-800">Appointments</h2>
+            </div>
+            <div className="p-4 space-y-3">
+              {appointments.length === 0 ? (
+                <p className="text-xs text-slate-500">No appointments scheduled.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {appointments.map((a) => (
+                    <li
+                      key={a.id}
+                      className="flex items-start justify-between gap-2 text-sm rounded-lg bg-slate-50 px-3 py-2"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-medium text-slate-900">
+                          {new Date(a.scheduled_at).toLocaleString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {a.location || "—"} · {a.status}
+                          {a.reminder_sent_at ? " · reminded" : ""}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                <input
+                  type="datetime-local"
+                  value={newApptAt}
+                  onChange={(e) => setNewApptAt(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/15 outline-none"
+                />
+                <input
+                  type="text"
+                  value={newApptLocation}
+                  onChange={(e) => setNewApptLocation(e.target.value)}
+                  placeholder="Location (optional)"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/15 outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddAppointment}
+                  disabled={savingAppt || !newApptAt}
+                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary text-white text-sm font-medium py-2 hover:bg-primary/90 shadow-glow-sm disabled:opacity-50"
+                >
+                  {savingAppt ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  Schedule visit
+                </button>
+              </div>
+            </div>
           </section>
         </aside>
 

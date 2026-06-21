@@ -94,6 +94,21 @@ CREATE TABLE audit_log (
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 
+-- 6. APPOINTMENTS (ANC visits + WhatsApp reminders, Plan 2.1)
+CREATE TABLE appointments (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id       uuid NOT NULL REFERENCES patients (id) ON DELETE CASCADE,
+  scheduled_at     timestamptz NOT NULL,
+  type             text DEFAULT 'anc_visit',
+  location         text,
+  status           text DEFAULT 'scheduled'
+                     CHECK (status IN ('scheduled','confirmed','completed','missed','cancelled')),
+  reminder_sent_at timestamptz,
+  notes            text,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  updated_at       timestamptz NOT NULL DEFAULT now()
+);
+
 -- Indexing for performance
 CREATE INDEX idx_messages_conv ON messages (conversation_id);
 CREATE INDEX idx_alerts_status ON alerts (status) WHERE status = 'active';
@@ -101,6 +116,8 @@ CREATE INDEX idx_patients_phone ON patients (phone_number);
 CREATE INDEX idx_conversations_patient ON conversations (patient_id);
 CREATE INDEX idx_audit_patient ON audit_log (patient_id);
 CREATE INDEX idx_audit_entity ON audit_log (entity_type, entity_id);
+CREATE INDEX idx_appointments_patient ON appointments (patient_id);
+CREATE INDEX idx_appointments_due ON appointments (scheduled_at) WHERE status IN ('scheduled','confirmed');
 
 -- Keep updated_at fresh on patients
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -123,6 +140,7 @@ ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alerts        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_log     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE appointments  ENABLE ROW LEVEL SECURITY;
 
 -- Authenticated clinicians: full access to clinical data.
 CREATE POLICY "authenticated full access" ON patients
@@ -132,6 +150,8 @@ CREATE POLICY "authenticated full access" ON conversations
 CREATE POLICY "authenticated full access" ON messages
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated full access" ON alerts
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated full access" ON appointments
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 -- Audit log: clinicians may read; only the service role writes (immutability).
 CREATE POLICY "authenticated read audit" ON audit_log

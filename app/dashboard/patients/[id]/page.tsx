@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { normalizePatient } from "@/lib/patients";
+import { listAppointments } from "@/app/actions/appointments";
 import { PatientDetailClient } from "./PatientDetailClient";
 
 export interface ConversationRow {
@@ -72,12 +73,16 @@ export default async function PatientDetailPage({ params }: PageProps) {
 
   const conversationId = conversation?.id ?? null;
 
+  // Plan 2.1 — upcoming/visit appointments (empty if the table isn't migrated yet).
+  const appointments = await listAppointments(id);
+
   return (
     <PatientDetailClient
       patient={patient}
       patientId={id}
       conversationId={conversationId}
       initialMessages={messages}
+      initialAppointments={appointments}
     />
   );
 }
