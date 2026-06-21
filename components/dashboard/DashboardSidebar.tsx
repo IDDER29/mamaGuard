@@ -149,8 +149,8 @@ export function SidebarContent({ doctor, onNavigate }: SidebarContentProps) {
           className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           aria-label="MamaGuard Home"
         >
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-sm">
-            <Heart className="h-5 w-5 text-white" aria-hidden="true" />
+          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-glow-sm">
+            <Heart className="h-5 w-5 text-white fill-white" aria-hidden="true" />
           </div>
           <div className="flex flex-col">
             <span className="text-base font-bold tracking-tight text-slate-900">
@@ -199,9 +199,9 @@ export function SidebarContent({ doctor, onNavigate }: SidebarContentProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
-                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors ${
+                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all duration-200 ${
                   active
-                    ? "bg-primary text-white shadow-sm"
+                    ? "bg-primary text-white shadow-glow-sm"
                     : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                 }`}
                 aria-current={active ? "page" : undefined}

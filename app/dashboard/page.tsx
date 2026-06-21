@@ -229,7 +229,7 @@ export default function DashboardPage() {
 
         {/* Metrics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="border-slate-200 bg-white shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer">
+          <Card className="rounded-2xl ring-1 ring-slate-200/70 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 cursor-pointer">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
@@ -259,7 +259,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-red-200/60 bg-gradient-to-br from-white to-red-50/40 shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer">
+          <Card className="border-red-200/60 bg-gradient-to-br from-white to-red-50/40 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
@@ -286,7 +286,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-amber-200/60 bg-gradient-to-br from-white to-amber-50/40 shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer">
+          <Card className="border-amber-200/60 bg-gradient-to-br from-white to-amber-50/40 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
@@ -313,7 +313,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-green-200/60 bg-gradient-to-br from-white to-green-50/40 shadow-sm hover:shadow-md transition-all hover:scale-[1.02] cursor-pointer">
+          <Card className="border-green-200/60 bg-gradient-to-br from-white to-green-50/40 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 cursor-pointer">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
