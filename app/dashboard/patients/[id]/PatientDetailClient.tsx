@@ -187,9 +187,9 @@ export function PatientDetailClient({
         </div>    
       </header>
 
-      <div className="flex-1 flex gap-4 p-4 overflow-hidden max-w-7xl mx-auto w-full">
+      <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 overflow-y-auto lg:overflow-hidden max-w-7xl mx-auto w-full">
         {/* Left: Clinical card */}
-        <aside className="w-72 shrink-0 flex flex-col gap-4 overflow-y-auto">
+        <aside className="w-full lg:w-72 shrink-0 flex flex-col gap-4 lg:overflow-y-auto">
           <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
@@ -226,7 +226,7 @@ export function PatientDetailClient({
         </aside>
 
         {/* Center: Daily summary + Chat */}
-        <main className="flex-1 flex flex-col gap-4 min-w-0 overflow-hidden">
+        <main className="flex-1 flex flex-col gap-4 min-w-0 lg:overflow-hidden min-h-[70vh] lg:min-h-0">
           <section className="bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 shrink-0">
             <h2 className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-2 flex items-center gap-2">
               <span className="material-symbols-outlined text-teal-600">today</span>

@@ -90,7 +90,8 @@ export default function DashboardPage() {
 
   // Real patient data from Supabase (with realtime updates), mapped to the
   // triage board card shape and split into critical / warning lists.
-  const { patients: realPatients, refreshing, refresh } = usePatientData();
+  const { patients: realPatients, loading, refreshing, refresh } =
+    usePatientData();
 
   const criticalPatients = useMemo(
     () =>
@@ -405,7 +406,30 @@ export default function DashboardPage() {
         </Card>
 
         {/* Patient Cards Grid */}
-        {filteredPatients.length > 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} className="border-slate-200 shadow-sm bg-white">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start gap-3">
+                    <div className="h-14 w-14 rounded-full bg-slate-200 animate-pulse" />
+                    <div className="flex-1 space-y-2 pt-1">
+                      <div className="h-4 w-2/3 rounded bg-slate-200 animate-pulse" />
+                      <div className="h-3 w-1/2 rounded bg-slate-100 animate-pulse" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="h-16 rounded-lg bg-slate-100 animate-pulse" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="h-10 rounded-lg bg-slate-100 animate-pulse" />
+                    <div className="h-10 rounded-lg bg-slate-100 animate-pulse" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredPatients.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {filteredPatients.map((patient) => (
               <Card

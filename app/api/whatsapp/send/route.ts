@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 
 type SendBody =
   | { conversationId: string; patientId?: string; message: string }
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   // Doctor message: same WhatsApp send logic as webhook (body is doctor-written, not AI-generated)
   const labeledWhatsAppContent = `👨‍⚕️ [Risala min tbib]:\n\n${rawContent}`;
 
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const rawToken = process.env.WHATSAPP_ACCESS_TOKEN;
   const rawPhoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const token = rawToken?.trim();
