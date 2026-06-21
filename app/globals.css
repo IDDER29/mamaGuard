@@ -4,6 +4,18 @@
    instead of the OS preference, so the in-app theme switch is the single source of truth. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Premium, layered shadow scale (brand-tinted, low-opacity — Stripe/Linear feel).
+   Overrides Tailwind's defaults so every `shadow-*` utility levels up at once. */
+@theme {
+  --shadow-2xs: 0 1px 2px 0 rgb(16 31 34 / 0.03);
+  --shadow-xs: 0 1px 2px 0 rgb(16 31 34 / 0.04), 0 1px 1px -1px rgb(16 31 34 / 0.03);
+  --shadow-sm: 0 1px 3px 0 rgb(16 31 34 / 0.05), 0 1px 2px -1px rgb(16 31 34 / 0.04);
+  --shadow-md: 0 4px 12px -2px rgb(16 31 34 / 0.08), 0 2px 6px -3px rgb(16 31 34 / 0.05);
+  --shadow-lg: 0 12px 28px -6px rgb(16 31 34 / 0.10), 0 6px 12px -8px rgb(16 31 34 / 0.06);
+  --shadow-xl: 0 24px 48px -12px rgb(16 31 34 / 0.16), 0 8px 16px -8px rgb(16 31 34 / 0.06);
+  --shadow-2xl: 0 40px 80px -24px rgb(16 31 34 / 0.24);
+}
+
 /* Theme for Tailwind v4: maps semantic names to CSS variables so shadcn components work */
 @theme inline {
   --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -99,8 +111,30 @@
   color-scheme: light;
 }
 
+html {
+  scroll-behavior: smooth;
+  /* Keep anchored sections clear of the fixed 80px marketing nav. */
+  scroll-padding-top: 6rem;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv11", "ss01";
+  font-variation-settings: "opsz" 32;
+}
+
+/* Tighter optical tracking on large display headings (premium SaaS feel). */
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background-color: rgba(17, 180, 212, 0.18);
+  color: #0a2d36;
 }
 
 /* Custom utility classes */
@@ -299,4 +333,104 @@ button:disabled,
 a[aria-disabled="true"],
 [role="button"][aria-disabled="true"] {
   cursor: not-allowed;
+}
+
+/* ============================================================================
+   World-class design system — shared utilities (Modern Medical SaaS)
+   ============================================================================ */
+
+/* Brand text gradient for display headings */
+.text-gradient-brand {
+  background-image: linear-gradient(120deg, #0e9bb8 0%, #11b4d4 45%, #38d0e8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Soft branded glow for primary CTAs and focal cards */
+.shadow-glow {
+  box-shadow:
+    0 10px 30px -10px rgba(17, 180, 212, 0.45),
+    0 4px 12px -6px rgba(17, 180, 212, 0.25);
+}
+.shadow-glow-sm {
+  box-shadow: 0 6px 18px -8px rgba(17, 180, 212, 0.4);
+}
+
+/* Hairline ring used on premium cards */
+.ring-hairline {
+  box-shadow: inset 0 0 0 1px rgba(16, 31, 34, 0.06);
+}
+
+/* Subtle dotted grid background (light) */
+.bg-grid {
+  background-image: radial-gradient(rgba(16, 31, 34, 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.dark .bg-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+}
+
+/* Faint fading mesh used behind hero/CTA sections */
+.bg-mesh {
+  background-image:
+    radial-gradient(40rem 40rem at 15% -10%, rgba(17, 180, 212, 0.12), transparent 60%),
+    radial-gradient(36rem 36rem at 100% 0%, rgba(56, 208, 232, 0.10), transparent 55%);
+}
+
+/* Frosted glass surface */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+.dark .glass {
+  background: rgba(22, 42, 45, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Entrance animations (respect reduced-motion) */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  animation: fade-up 0.7s cubic-bezier(0.21, 0.61, 0.35, 1) forwards;
+}
+.animate-fade-in {
+  opacity: 0;
+  animation: fade-in 0.8s ease forwards;
+}
+.animate-float-soft {
+  animation: float-soft 6s ease-in-out infinite;
+}
+
+/* Stagger helpers */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-float-soft,
+  .animate-bounce-slow,
+  .animate-gradient {
+    animation: none;
+    opacity: 1;
+  }
 }
