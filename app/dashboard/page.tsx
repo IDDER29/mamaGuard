@@ -112,6 +112,14 @@ export default function DashboardPage() {
     [criticalPatients, warningPatients],
   );
 
+  const stablePatientCount = useMemo(
+    () =>
+      realPatients.filter(
+        (p) => p.risk_level === "low" || p.risk_level === "medium",
+      ).length,
+    [realPatients],
+  );
+
   const filteredPatients = useMemo(() => {
     let patients = allPatients;
 
@@ -236,12 +244,14 @@ export default function DashboardPage() {
               <div className="flex items-end justify-between">
                 <div>
                   <div className="text-3xl font-bold text-slate-900">
-                    {allPatients.length}
+                    {realPatients.length}
                   </div>
                   <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3 text-green-600" />
-                    <span className="text-green-600 font-medium">+12%</span>
-                    <span>vs last month</span>
+                    <TrendingUp className="h-3 w-3 text-amber-600" />
+                    <span className="font-medium text-amber-600">
+                      {allPatients.length}
+                    </span>
+                    <span>high-risk</span>
                   </p>
                 </div>
                 <BarChart3 className="h-8 w-8 text-slate-200" />
@@ -271,16 +281,7 @@ export default function DashboardPage() {
                     <span className="font-medium">Immediate action</span>
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs font-semibold text-red-600">
-                    {
-                      criticalPatients.filter((p) =>
-                        p.lastUpdate.includes("m"),
-                      ).length
-                    }
-                  </div>
-                  <div className="text-xs text-red-600/70">recent</div>
-                </div>
+                <AlertCircle className="h-8 w-8 text-red-200" />
               </div>
             </CardContent>
           </Card>
@@ -307,12 +308,7 @@ export default function DashboardPage() {
                     <span className="font-medium">Monitor closely</span>
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs font-semibold text-amber-600">
-                    24h
-                  </div>
-                  <div className="text-xs text-amber-600/70">avg response</div>
-                </div>
+                <AlertTriangle className="h-8 w-8 text-amber-200" />
               </div>
             </CardContent>
           </Card>
@@ -321,7 +317,7 @@ export default function DashboardPage() {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  Response Rate
+                  Stable
                 </CardTitle>
                 <div className="p-2 bg-green-100 rounded-lg ring-2 ring-green-200/50">
                   <Activity className="h-4 w-4 text-green-600" />
@@ -331,19 +327,15 @@ export default function DashboardPage() {
             <CardContent>
               <div className="flex items-end justify-between">
                 <div>
-                  <div className="text-3xl font-bold text-green-600">98%</div>
+                  <div className="text-3xl font-bold text-green-600">
+                    {stablePatientCount}
+                  </div>
                   <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
                     <ArrowUpRight className="h-3 w-3" />
-                    <span className="font-medium">+5%</span>
-                    <span className="text-slate-500">this week</span>
+                    <span className="text-slate-500">low &amp; medium risk</span>
                   </p>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs font-semibold text-green-600">
-                    8min
-                  </div>
-                  <div className="text-xs text-green-600/70">avg time</div>
-                </div>
+                <Activity className="h-8 w-8 text-green-200" />
               </div>
             </CardContent>
           </Card>
