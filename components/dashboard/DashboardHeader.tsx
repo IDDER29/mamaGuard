@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Clock,
   X,
+  Menu,
 } from "lucide-react";
 
 // Types
@@ -63,6 +64,7 @@ interface DashboardHeaderProps {
   onMarkAllAsRead?: () => void;
   onDismissNotification?: (notificationId: string) => void;
   onOpenCommandPalette?: () => void;
+  onOpenSidebar?: () => void;
   enableNotificationSound?: boolean;
   autoRefreshInterval?: number; // in seconds, 0 = disabled
 }
@@ -95,6 +97,7 @@ function DashboardHeaderComponent({
   onMarkAllAsRead,
   onDismissNotification,
   onOpenCommandPalette,
+  onOpenSidebar,
   enableNotificationSound = false,
   autoRefreshInterval = 0,
 }: DashboardHeaderProps) {
@@ -231,8 +234,19 @@ function DashboardHeaderComponent({
         role="banner"
       >
         {/* ====================================================================
-            LEFT SECTION: Search Bar
+            LEFT SECTION: Mobile menu trigger + Search Bar
         ==================================================================== */}
+        {onOpenSidebar && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onOpenSidebar}
+            className="lg:hidden h-9 w-9 shrink-0 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            aria-label="Open navigation menu"
+          >
+            <Menu className="h-5 w-5" aria-hidden="true" />
+          </Button>
+        )}
         <div className="flex-1 max-w-md mr-auto">
           <Tooltip>
             <TooltipTrigger asChild>

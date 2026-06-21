@@ -5,7 +5,9 @@
  */
 
 // Layout Components
+export { default as DashboardChrome } from "./DashboardChrome";
 export { default as DashboardSidebar } from "./DashboardSidebar";
+export { default as DashboardSidebarMobile } from "./DashboardSidebarMobile";
 export { default as DashboardHeader } from "./DashboardHeader";
 export { default as DashboardNav } from "./DashboardNav";
 

@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: `dark:` utilities key off a `.dark` ancestor (toggled by ThemeProvider)
+   instead of the OS preference, so the in-app theme switch is the single source of truth. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Theme for Tailwind v4: maps semantic names to CSS variables so shadcn components work */
 @theme inline {
   --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;

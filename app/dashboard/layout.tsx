@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DashboardSidebar, DashboardHeader } from "@/components/dashboard";
+import DashboardChrome from "@/components/dashboard/DashboardChrome";
 import CommandPalette from "@/components/dashboard/CommandPalette";
 import { mockDoctor, mockStats } from "@/lib/mockData";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,19 +17,12 @@ export default function DashboardLayout({
 }) {
   return (
     <TooltipProvider>
-      <div className="h-screen flex bg-background overflow-hidden">
-        <DashboardSidebar doctor={mockDoctor} />
+      <DashboardChrome doctor={mockDoctor} stats={mockStats}>
+        {children}
+      </DashboardChrome>
 
-        <main className="flex-1 flex flex-col h-full overflow-hidden">
-          <DashboardHeader stats={mockStats} />
-          <div className="flex-1 overflow-y-auto bg-slate-50/50">
-            {children}
-          </div>
-        </main>
-
-        {/* Command Palette */}
-        <CommandPalette />
-      </div>
+      {/* Command Palette */}
+      <CommandPalette />
     </TooltipProvider>
   );
 }
