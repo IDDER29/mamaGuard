@@ -3,6 +3,22 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import {
+  Check,
+  CheckCircle2,
+  Lock,
+  Info,
+  ArrowLeft,
+  ArrowRight,
+  User,
+  IdCard,
+  MapPin,
+  Activity,
+  Users,
+  Siren,
+  Heart,
+  Settings,
+} from "lucide-react";
 import { registerPatient } from "@/app/actions/patients";
 
 // ============================================================================
@@ -174,7 +190,7 @@ export default function NewPatientPage() {
                         }`}
                       >
                         {isCompleted ? (
-                          <span className="material-symbols-outlined text-[18px]">check</span>
+                          <Check className="h-4.5 w-4.5" />
                         ) : (
                           step.number
                         )}
@@ -197,7 +213,7 @@ export default function NewPatientPage() {
             {/* HIPAA Badge */}
             <div className="mt-auto pt-6 border-t border-slate-200">
               <div className="flex items-center gap-2 text-xs text-slate-400">
-                <span className="material-symbols-outlined text-[16px]">lock</span>
+                <Lock className="h-4 w-4" />
                 <span>Encrypted HIPAA Compliant</span>
               </div>
             </div>
@@ -207,7 +223,7 @@ export default function NewPatientPage() {
           <div className="flex-1 p-8 lg:p-12 overflow-y-auto">
             {/* Info Banner */}
             <div className="mb-8 bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
-              <span className="material-symbols-outlined text-blue-600 text-xl mt-0.5">info</span>
+              <Info className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
                 <h3 className="text-sm font-semibold text-blue-800">
                   Welcome to MamaGuard Enrollment
@@ -256,7 +272,7 @@ export default function NewPatientPage() {
                       className="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 transition-all flex items-center gap-2"
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                      <ArrowLeft className="h-4.5 w-4.5" />
                       Previous
                     </button>
                   )}
@@ -270,11 +286,11 @@ export default function NewPatientPage() {
                         ? "Registering…"
                         : "Complete Registration"
                       : "Save and Continue"}
-                    <span className="material-symbols-outlined text-[18px]">
-                      {currentStep === 4 && !isSubmitting
-                        ? "check_circle"
-                        : "arrow_forward"}
-                    </span>
+                    {currentStep === 4 && !isSubmitting ? (
+                      <CheckCircle2 className="h-4.5 w-4.5" />
+                    ) : (
+                      <ArrowRight className="h-4.5 w-4.5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -300,7 +316,7 @@ function StepPersonalInfo({ formData, onChange }: StepProps) {
     <div>
       <div className="flex items-center gap-2 mb-6">
         <div className="p-1.5 bg-teal-500/10 rounded-lg text-teal-600">
-          <span className="material-symbols-outlined text-[20px]">person</span>
+          <User className="h-5 w-5" />
         </div>
         <h3 className="text-lg font-semibold text-slate-800">Personal Information</h3>
       </div>
@@ -355,7 +371,7 @@ function StepPersonalInfo({ formData, onChange }: StepProps) {
               required
             />
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <span className="material-symbols-outlined text-slate-400 text-[18px]">badge</span>
+              <IdCard className="h-4.5 w-4.5 text-slate-400" />
             </div>
           </div>
         </div>
@@ -439,7 +455,7 @@ function StepPersonalInfo({ formData, onChange }: StepProps) {
               required
             />
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <span className="material-symbols-outlined text-slate-400 text-[18px]">location_on</span>
+              <MapPin className="h-4.5 w-4.5 text-slate-400" />
             </div>
           </div>
           <p className="mt-1 text-xs text-slate-500">
@@ -460,7 +476,7 @@ function StepClinicalBaseline({ formData, onChange }: StepProps) {
     <div>
       <div className="flex items-center gap-2 mb-6">
         <div className="p-1.5 bg-teal-500/10 rounded-lg text-teal-600">
-          <span className="material-symbols-outlined text-[20px]">monitor_heart</span>
+          <Activity className="h-5 w-5" />
         </div>
         <h3 className="text-lg font-semibold text-slate-800">Clinical Baseline</h3>
       </div>
@@ -619,7 +635,7 @@ function StepSupportNetwork({ formData, onChange }: StepProps) {
     <div>
       <div className="flex items-center gap-2 mb-6">
         <div className="p-1.5 bg-teal-500/10 rounded-lg text-teal-600">
-          <span className="material-symbols-outlined text-[20px]">family_restroom</span>
+          <Users className="h-5 w-5" />
         </div>
         <h3 className="text-lg font-semibold text-slate-800">Support Network</h3>
       </div>
@@ -627,7 +643,7 @@ function StepSupportNetwork({ formData, onChange }: StepProps) {
         {/* Emergency Contact */}
         <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
           <h4 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-red-500">emergency</span>
+            <Siren className="h-4.5 w-4.5 text-red-500" />
             Emergency Contact
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -687,7 +703,7 @@ function StepSupportNetwork({ formData, onChange }: StepProps) {
         {/* Spouse/Partner */}
         <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
           <h4 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-slate-600">favorite</span>
+            <Heart className="h-4.5 w-4.5 text-slate-600" />
             Spouse / Partner <span className="text-slate-400 font-normal">(Optional)</span>
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -733,7 +749,7 @@ function StepMonitoringSetup({ formData, onChange }: StepProps) {
     <div>
       <div className="flex items-center gap-2 mb-6">
         <div className="p-1.5 bg-teal-500/10 rounded-lg text-teal-600">
-          <span className="material-symbols-outlined text-[20px]">settings</span>
+          <Settings className="h-5 w-5" />
         </div>
         <h3 className="text-lg font-semibold text-slate-800">Monitoring Setup</h3>
       </div>
@@ -813,7 +829,7 @@ function StepMonitoringSetup({ formData, onChange }: StepProps) {
         {/* Success Message Preview */}
         <div className="col-span-2 bg-teal-50 border border-teal-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
-            <span className="material-symbols-outlined text-teal-600 text-xl">check_circle</span>
+            <CheckCircle2 className="h-5 w-5 text-primary" />
             <div>
               <h4 className="text-sm font-semibold text-teal-900">Ready to Complete</h4>
               <p className="text-xs text-teal-700 mt-1">

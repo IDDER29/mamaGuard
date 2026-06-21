@@ -11,13 +11,25 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import {
+  LayoutDashboard,
+  Users,
+  BarChart3,
+  UserPlus,
+  RefreshCw,
+  Download,
+  CircleAlert,
+  TriangleAlert,
+  FilterX,
+  User,
+} from "lucide-react";
 import { mockCriticalPatients, mockWarningPatients } from "@/lib/mockData";
 
 interface CommandAction {
   id: string;
   label: string;
   description?: string;
-  icon: string;
+  icon: React.ElementType;
   action: () => void;
   shortcut?: string;
   group: "navigation" | "actions" | "patients" | "filters";
@@ -78,7 +90,7 @@ export default function CommandPalette() {
       id: "nav-dashboard",
       label: "Dashboard",
       description: "Go to main dashboard",
-      icon: "dashboard",
+      icon: LayoutDashboard,
       action: () => router.push("/dashboard"),
       shortcut: "G D",
       group: "navigation",
@@ -87,7 +99,7 @@ export default function CommandPalette() {
       id: "nav-patients",
       label: "Patient List",
       description: "View all patients",
-      icon: "groups",
+      icon: Users,
       action: () => router.push("/dashboard/patients"),
       shortcut: "G P",
       group: "navigation",
@@ -96,7 +108,7 @@ export default function CommandPalette() {
       id: "nav-analytics",
       label: "Analytics",
       description: "View analytics dashboard",
-      icon: "bar_chart",
+      icon: BarChart3,
       action: () => router.push("/dashboard/analytics"),
       shortcut: "G A",
       group: "navigation",
@@ -106,7 +118,7 @@ export default function CommandPalette() {
       id: "action-new-patient",
       label: "New Patient",
       description: "Add a new patient record",
-      icon: "person_add",
+      icon: UserPlus,
       action: () => router.push("/dashboard/patients/new"),
       shortcut: "N",
       group: "actions",
@@ -115,7 +127,7 @@ export default function CommandPalette() {
       id: "action-refresh",
       label: "Refresh Data",
       description: "Reload patient information",
-      icon: "refresh",
+      icon: RefreshCw,
       action: () => window.location.reload(),
       shortcut: "R",
       group: "actions",
@@ -124,7 +136,7 @@ export default function CommandPalette() {
       id: "action-export",
       label: "Export Data",
       description: "Export patient data to CSV",
-      icon: "download",
+      icon: Download,
       action: () => alert("Export functionality coming soon!"),
       group: "actions",
     },
@@ -133,7 +145,7 @@ export default function CommandPalette() {
       id: "filter-critical",
       label: "Show Critical Only",
       description: "Filter to critical patients",
-      icon: "error",
+      icon: CircleAlert,
       action: () => router.push("/dashboard?filter=critical"),
       group: "filters",
     },
@@ -141,7 +153,7 @@ export default function CommandPalette() {
       id: "filter-warning",
       label: "Show Warnings Only",
       description: "Filter to warning patients",
-      icon: "warning",
+      icon: TriangleAlert,
       action: () => router.push("/dashboard?filter=warning"),
       group: "filters",
     },
@@ -149,7 +161,7 @@ export default function CommandPalette() {
       id: "filter-all",
       label: "Show All Patients",
       description: "Clear all filters",
-      icon: "filter_list_off",
+      icon: FilterX,
       action: () => router.push("/dashboard"),
       group: "filters",
     },
@@ -193,9 +205,10 @@ export default function CommandPalette() {
                   onSelect={() => handleSelect(cmd.action)}
                   className="cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[20px] mr-3 text-slate-500">
-                    {cmd.icon}
-                  </span>
+                  {(() => {
+                    const Icon = cmd.icon;
+                    return <Icon className="h-5 w-5 mr-3 text-slate-500" />;
+                  })()}
                   <div className="flex-1">
                     <div className="font-medium">{cmd.label}</div>
                     {cmd.description && (
@@ -225,9 +238,10 @@ export default function CommandPalette() {
                   onSelect={() => handleSelect(cmd.action)}
                   className="cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[20px] mr-3 text-slate-500">
-                    {cmd.icon}
-                  </span>
+                  {(() => {
+                    const Icon = cmd.icon;
+                    return <Icon className="h-5 w-5 mr-3 text-slate-500" />;
+                  })()}
                   <div className="flex-1">
                     <div className="font-medium">{cmd.label}</div>
                     {cmd.description && (
@@ -257,9 +271,10 @@ export default function CommandPalette() {
                   onSelect={() => handleSelect(cmd.action)}
                   className="cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[20px] mr-3 text-slate-500">
-                    {cmd.icon}
-                  </span>
+                  {(() => {
+                    const Icon = cmd.icon;
+                    return <Icon className="h-5 w-5 mr-3 text-slate-500" />;
+                  })()}
                   <div className="flex-1">
                     <div className="font-medium">{cmd.label}</div>
                     {cmd.description && (
@@ -287,9 +302,7 @@ export default function CommandPalette() {
                     }
                     className="cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-[20px] mr-3 text-slate-500">
-                      person
-                    </span>
+                    <User className="h-5 w-5 mr-3 text-slate-500" />
                     <div className="flex-1">
                       <div className="font-medium">{patient.name}</div>
                       <div className="text-xs text-slate-500">
