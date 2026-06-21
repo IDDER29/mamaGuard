@@ -35,7 +35,7 @@ This is the part that requires reading multiple files to understand. The flow wh
 - `POST` responds **200 immediately**, then runs `processMessageInBackground` (fire-and-forget) so Meta doesn't time out.
 - If the message is audio, it downloads the media via the Graph API and transcribes it with `lib/transcribe.ts` (OpenAI Whisper, forced `language: 'ar'`).
 - Deduplicates by `metadata->>wamid`, then finds-or-creates the `patients` row (by `phone_number`) and its `conversations` row.
-- Runs `lib/symptoms.ts` `analyzeSymptomRisk()` — a **keyword/substring matcher** (Darija + English) over a hardcoded `SYMPTOMS_DATABASE`, returning the highest-urgency match. This drives `patients.risk_level` and inserts an `alerts` row for `high`/`critical`.
+- Runs `lib/triage.ts` `assessTriage()` — a **validated, deterministic, conservative** danger-sign engine grounded in the WHO Antenatal Care DAK (multilingual Darija/French/English, negation-aware, versioned via `TRIAGE_VERSION`, with pre-eclampsia co-occurrence escalation). It returns the highest urgency + matched signs; this drives `patients.risk_level` and inserts an `alerts` row for `high`/`critical`. `lib/symptoms.ts` is now a thin back-compat re-export. Vignette tests: `node --experimental-strip-types --test lib/triage.vignettes.mjs`. The LLM reply layer must **never** downgrade this rule-based urgency.
 - Saves the patient message (`role: "user"`), fetches the last 5 messages for context, then calls `lib/generateMamaResponse.ts`.
 - Sends the AI reply back over WhatsApp and saves it (`role: "assistant"`).
 

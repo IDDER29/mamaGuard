@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { generateMamaResponse } from "@/lib/generateMamaResponse";
-import { analyzeSymptomRisk } from "@/lib/symptoms";
+import { assessTriage } from "@/lib/triage";
 import { transcribeAudio } from "@/lib/transcribe";
 import { generateSpeech } from "@/lib/speak";
 
@@ -106,37 +106,50 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
     }
 
     // --- 3. RISK ANALYSIS & DB SAVE (AS PATIENT/USER) ---
-    const risk = analyzeSymptomRisk(userText);
-    
-    // Save the Patient's message (The "User" role)
+    // Validated, deterministic, conservative triage (WHO ANC DAK — Plan 1.1).
+    const triage = assessTriage(userText);
+
+    // Save the Patient's message (The "User" role). Persist the full triage
+    // assessment for auditability (version, matched signs, escalation).
     const { data: savedPatientMsg } = await supabase
       .from("messages")
       .insert({
         conversation_id: conv!.id,
         role: "user", // Correctly save as patient
         content: userText,
-        metadata: { wamid, risk: risk.urgency, source: isAudio ? "voice_note" : "text" }
+        metadata: {
+          wamid,
+          risk: triage.urgency,
+          source: isAudio ? "voice_note" : "text",
+          triage_version: triage.version,
+          triage_signs: triage.signs.map((s) => s.id),
+          triage_escalated: triage.escalated,
+        },
       })
       .select().single();
 
-    // Update health resume and risk status
-    const stateResume = `Check-in: ${new Date().toLocaleDateString()} - AI detected: ${risk.symptom || 'Normal update'}. Urgency: ${risk.urgency}`;
-    
-    await supabase.from("patients").update({ 
-      risk_level: risk.urgency,
-      medical_history: { 
+    // Update health resume and risk status. risk_level is set from the RULE
+    // engine only — the LLM reply layer can never downgrade it.
+    const detected = triage.signs.length
+      ? triage.signs.map((s) => s.label).join(", ")
+      : "No danger signs detected";
+    const stateResume = `Check-in: ${new Date().toLocaleDateString()} - Detected: ${detected}. Urgency: ${triage.urgency}`;
+
+    await supabase.from("patients").update({
+      risk_level: triage.urgency,
+      medical_history: {
         ...(typeof currentPatient.medical_history === 'object' ? currentPatient.medical_history : {}),
         last_resume: stateResume
       }
     }).eq("id", currentPatient.id);
 
-    // Trigger alert record for high/critical
-    if (risk.urgency === "high" || risk.urgency === "critical") {
+    // Trigger alert record for high/critical (human-in-the-loop queue).
+    if (triage.urgency === "high" || triage.urgency === "critical") {
       await supabase.from("alerts").insert({
         patient_id: currentPatient.id,
         message_id: savedPatientMsg!.id,
-        urgency: risk.urgency,
-        symptom_name: risk.symptom
+        urgency: triage.urgency,
+        symptom_name: triage.signs.map((s) => s.label).join(", ") || triage.symptom,
       });
     }
 
@@ -152,7 +165,7 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
 
     const aiResponse = await generateMamaResponse(userText, {
       name: currentPatient.full_name || currentPatient.name,
-      risk_level: risk.urgency,
+      risk_level: triage.urgency,
       gestational_week: currentPatient.gestational_week,
       chat_history: historyString,
     });
