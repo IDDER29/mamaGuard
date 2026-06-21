@@ -32,19 +32,6 @@ export interface Patient {
   has_smartphone: boolean;
 }
 
-export interface VitalSign {
-  id: string;
-  patientId: string;
-  timestamp: Date;
-  bloodPressure: {
-    systolic: number;
-    diastolic: number;
-  };
-  heartRate: number;
-  temperature?: number;
-  symptoms?: string[];
-}
-
 export interface Alert {
   id: string;
   patientId: string;

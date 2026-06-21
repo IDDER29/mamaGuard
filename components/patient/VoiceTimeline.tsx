@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactElement } from "react";
 import Image from "next/image";
 import type { VoiceMessage } from "@/types";
 
@@ -46,7 +46,7 @@ export default function VoiceTimeline({ messages, patientAvatar, patientName }: 
     return "bg-slate-100 text-slate-600 border-slate-200";
   };
 
-  const highlightTerms = (text: string, terms?: string[]): JSX.Element[] => {
+  const highlightTerms = (text: string, terms?: string[]): ReactElement[] => {
     if (!terms || terms.length === 0) {
       return [<span key="text">{text}</span>];
     }

@@ -160,7 +160,7 @@ export default function NewPatientPage() {
                         ? 'opacity-75 cursor-pointer hover:opacity-100'
                         : 'opacity-60'
                     }`}
-                    onClick={isCompleted ? () => setCurrentStep(step.number) : undefined}
+                    onClick={isCompleted ? () => setCurrentStep(step.number as RegistrationStep) : undefined}
                     role={isCompleted ? 'button' : undefined}
                   >
                     <div className="flex flex-col items-center gap-1">

@@ -293,17 +293,17 @@ export default function CommandPalette() {
                     <div className="flex-1">
                       <div className="font-medium">{patient.name}</div>
                       <div className="text-xs text-slate-500">
-                        ID: {patient.patientId} • {patient.alert.category}
+                        ID: {patient.id} • {patient.alert.category}
                       </div>
                     </div>
                     <span
                       className={`ml-2 px-2 py-0.5 text-xs font-semibold rounded ${
-                        patient.riskLevel === "critical"
+                        patient.risk_level === "critical"
                           ? "bg-red-100 text-red-700"
                           : "bg-amber-100 text-amber-700"
                       }`}
                     >
-                      {patient.riskLevel}
+                      {patient.risk_level}
                     </span>
                   </CommandItem>
                 ))}

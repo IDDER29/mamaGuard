@@ -21,8 +21,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/Card"
-import { toast } from "sonner" // Optional: recommended for hackathons
+} from "@/components/ui/card"
 
 const patientSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -31,17 +30,16 @@ const patientSchema = z.object({
     .min(1, "Phone number is required")
     .regex(/^[\d\s+\-()]+$/, "Enter a valid phone number"),
   due_date: z.string().min(1, "Due date is required"),
-  gestational_week: z.coerce
-    .number()
+  gestational_week: z
+    .number({ message: "Enter a valid week" })
     .int()
     .min(1, "Must be at least 1")
     .max(42, "Must be at most 42"),
   chronic_conditions: z.string().optional(),
-  previous_c_sections: z.coerce
-    .number()
+  previous_c_sections: z
+    .number({ message: "Enter a valid number" })
     .int()
-    .min(0, "Must be 0 or more")
-    .default(0),
+    .min(0, "Must be 0 or more"),
 })
 
 type PatientFormValues = z.infer<typeof patientSchema>
@@ -154,6 +152,8 @@ export function OnboardingForm() {
                       <Input
                         type="number"
                         {...field}
+                        value={Number.isNaN(field.value) ? "" : field.value}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -198,6 +198,8 @@ export function OnboardingForm() {
                     <Input
                       type="number"
                       {...field}
+                      value={Number.isNaN(field.value) ? "" : field.value}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
                     />
                   </FormControl>
                   <FormMessage />
