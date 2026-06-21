@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { generateMamaResponse } from "@/lib/generateMamaResponse";
 import { analyzeSymptomRisk } from "@/lib/symptoms";
 import { transcribeAudio } from "@/lib/transcribe";
@@ -27,7 +27,7 @@ interface WhatsAppWebhookBody {
  * 4. Generates and sends AI response
  */
 async function processMessageInBackground(body: WhatsAppWebhookBody) {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   
   try {
     const entry = body.entry?.[0];

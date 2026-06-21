@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 
 export type PatientFormData = {
   fullName: string;
@@ -60,7 +60,7 @@ export type RegisterPatientResult =
 export async function registerPatient(
   formData: PatientFormData
 ): Promise<RegisterPatientResult> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
 
   const phoneNumber = formatPhone(formData.countryCode, formData.phone);
 
@@ -162,7 +162,7 @@ export async function updatePatientFields(
   patientId: string,
   fields: UpdatePatientFieldsInput
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const supabase = await createClient();
+  const supabase = await createAdminClient();
   const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (fields.gestational_week !== undefined) payload.gestational_week = fields.gestational_week;
   if (fields.blood_type !== undefined) payload.blood_type = fields.blood_type || null;

@@ -2,11 +2,9 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import {
-  mockCriticalPatients,
-  mockWarningPatients,
-  mockDoctor,
-} from "@/lib/mockData";
+import { mockDoctor } from "@/lib/mockData";
+import { usePatientData } from "@/app/dashboard/patients/hooks";
+import type { Patient } from "@/types";
 import {
   Card,
   CardContent,
@@ -40,12 +38,45 @@ import {
   Zap,
 } from "lucide-react";
 
+/** Shape the triage board cards expect (derived from a real Supabase patient). */
+interface TriageCard {
+  id: string;
+  name: string;
+  gestational_week: number;
+  risk_level: "critical" | "warning";
+  avatarUrl: string;
+  alert: { category: string; message: string };
+  metrics: { label: string; value: string }[];
+  lastUpdate: string;
+}
+
+function toTriageCard(p: Patient): TriageCard {
+  const isCritical = p.risk_level === "critical";
+  return {
+    id: p.id,
+    name: p.full_name || p.name || "—",
+    gestational_week: p.gestational_week,
+    risk_level: isCritical ? "critical" : "warning",
+    avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(p.id)}`,
+    alert: {
+      category: isCritical ? "Critical risk detected" : "Needs monitoring",
+      message:
+        p.medical_history?.notes ||
+        "Review the latest check-in for this patient.",
+    },
+    metrics: [
+      { label: "Week", value: `${p.gestational_week}` },
+      { label: "Trimester", value: `${p.trimester ?? "—"}` },
+    ],
+    lastUpdate: "recent",
+  };
+}
+
 type FilterType = "all" | "critical" | "warning";
 
 interface DashboardState {
   searchQuery: string;
   filterType: FilterType;
-  isRefreshing: boolean;
 }
 
 export default function DashboardPage() {
@@ -54,14 +85,31 @@ export default function DashboardPage() {
   const [state, setState] = useState<DashboardState>({
     searchQuery: "",
     filterType: "all",
-    isRefreshing: false,
   });
 
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Real patient data from Supabase (with realtime updates), mapped to the
+  // triage board card shape and split into critical / warning lists.
+  const { patients: realPatients, refreshing, refresh } = usePatientData();
+
+  const criticalPatients = useMemo(
+    () =>
+      realPatients
+        .filter((p) => p.risk_level === "critical")
+        .map(toTriageCard),
+    [realPatients],
+  );
+
+  const warningPatients = useMemo(
+    () =>
+      realPatients.filter((p) => p.risk_level === "high").map(toTriageCard),
+    [realPatients],
+  );
+
   const allPatients = useMemo(
-    () => [...mockCriticalPatients, ...mockWarningPatients],
-    [],
+    () => [...criticalPatients, ...warningPatients],
+    [criticalPatients, warningPatients],
   );
 
   const filteredPatients = useMemo(() => {
@@ -83,11 +131,8 @@ export default function DashboardPage() {
     return patients;
   }, [allPatients, state.searchQuery, state.filterType]);
 
-  const handleRefresh = async () => {
-    if (state.isRefreshing) return;
-    setState((prev) => ({ ...prev, isRefreshing: true }));
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setState((prev) => ({ ...prev, isRefreshing: false }));
+  const handleRefresh = () => {
+    refresh();
   };
 
   const getPatientInitials = (name: string) => {
@@ -144,7 +189,7 @@ export default function DashboardPage() {
             <p className="text-sm text-slate-600">
               {formattedTime} • {filteredPatients.length} active patients •{" "}
               {
-                mockCriticalPatients.filter((p) => filteredPatients.includes(p))
+                criticalPatients.filter((p) => filteredPatients.includes(p))
                   .length
               }{" "}
               critical
@@ -155,11 +200,11 @@ export default function DashboardPage() {
               variant="outline"
               size="default"
               onClick={handleRefresh}
-              disabled={state.isRefreshing}
+              disabled={refreshing}
               className="gap-2"
             >
               <RefreshCw
-                className={`h-4 w-4 ${state.isRefreshing ? "animate-spin" : ""}`}
+                className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
               />
               Refresh
             </Button>
@@ -238,7 +283,7 @@ export default function DashboardPage() {
               <div className="flex items-end justify-between">
                 <div>
                   <div className="text-3xl font-bold text-red-600">
-                    {mockCriticalPatients.length}
+                    {criticalPatients.length}
                   </div>
                   <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
                     <Zap className="h-3 w-3" />
@@ -248,7 +293,7 @@ export default function DashboardPage() {
                 <div className="text-right">
                   <div className="text-xs font-semibold text-red-600">
                     {
-                      mockCriticalPatients.filter((p) =>
+                      criticalPatients.filter((p) =>
                         p.lastUpdate.includes("m"),
                       ).length
                     }
@@ -274,7 +319,7 @@ export default function DashboardPage() {
               <div className="flex items-end justify-between">
                 <div>
                   <div className="text-3xl font-bold text-amber-600">
-                    {mockWarningPatients.length}
+                    {warningPatients.length}
                   </div>
                   <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
                     <Clock className="h-3 w-3" />
@@ -364,14 +409,14 @@ export default function DashboardPage() {
                     className="gap-2 data-[state=active]:bg-red-600 data-[state=active]:text-white"
                   >
                     <AlertCircle className="h-3.5 w-3.5" />
-                    Critical ({mockCriticalPatients.length})
+                    Critical ({criticalPatients.length})
                   </TabsTrigger>
                   <TabsTrigger
                     value="warning"
                     className="gap-2 data-[state=active]:bg-amber-600 data-[state=active]:text-white"
                   >
                     <AlertTriangle className="h-3.5 w-3.5" />
-                    Warning ({mockWarningPatients.length})
+                    Warning ({warningPatients.length})
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -427,7 +472,7 @@ export default function DashboardPage() {
                             <Zap className="h-3 w-3 text-white" />
                           </div>
                         )}
-                        {patient.risk_level === "high" && (
+                        {patient.risk_level === "warning" && (
                           <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center shadow-md ring-2 ring-white">
                             <AlertTriangle className="h-2.5 w-2.5 text-white" />
                           </div>
@@ -458,7 +503,7 @@ export default function DashboardPage() {
                           : "default"
                       }
                       className={`flex-shrink-0 ${
-                        patient.risk_level === "high"
+                        patient.risk_level === "warning"
                           ? "bg-amber-500 text-white hover:bg-amber-600 border-0"
                           : "border-0"
                       } shadow-sm font-semibold text-[10px] uppercase tracking-wide`}
@@ -631,7 +676,6 @@ export default function DashboardPage() {
                       setState({
                         searchQuery: "",
                         filterType: "all",
-                        isRefreshing: false,
                       })
                     }
                     className="gap-2"

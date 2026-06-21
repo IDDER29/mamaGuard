@@ -24,14 +24,20 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // COMMENT OUT OR REMOVE THIS REDIRECT FOR THE HACKATHON DEMO
-  /*
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // Secure by default: gate /dashboard behind auth unless DISABLE_AUTH=true
+  // (set DISABLE_AUTH=true in the environment to keep the demo open).
+  const authDisabled = process.env.DISABLE_AUTH === "true";
+  if (
+    !authDisabled &&
+    !user &&
+    request.nextUrl.pathname.startsWith("/dashboard")
+  ) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
-  */
 
   return response;
 }

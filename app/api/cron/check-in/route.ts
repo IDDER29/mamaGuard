@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { generateMamaResponse } from "@/lib/generateMamaResponse";
 
 export async function GET(req: Request) {
@@ -9,8 +9,8 @@ export async function GET(req: Request) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
-  const supabase = await createClient();
-  
+  const supabase = await createAdminClient();
+
   // 2. Get all patients who need a check-in
   const { data: patients } = await supabase.from("patients").select("*");
 
