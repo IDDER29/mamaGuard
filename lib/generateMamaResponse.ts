@@ -53,7 +53,7 @@ function buildUserPrompt(message: string): string {
 
 async function callOpenAI(systemPrompt: string, userPrompt: string): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL ?? "gpt-4o-min";
+  const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
   console.log("[Mama AI] Using OpenAI, model:", model);
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {

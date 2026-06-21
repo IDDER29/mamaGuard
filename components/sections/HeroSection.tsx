@@ -125,7 +125,7 @@ export default function HeroSection() {
                 </span>
               </a>
               <a
-                href="#video-demo"
+                href="#how-it-works"
                 className="group border-2 border-slate-300 dark:border-white/20 hover:border-primary text-slate-700 dark:text-white hover:text-primary dark:hover:text-primary font-semibold px-8 py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 bg-white/50 dark:bg-white/5 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-900"
               >
                 <span
@@ -134,7 +134,7 @@ export default function HeroSection() {
                 >
                   play_circle
                 </span>
-                Watch Demo
+                See How It Works
               </a>
             </div>
 

@@ -13,8 +13,8 @@ import {
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const NAV_LINKS = [
-  { href: "#features", label: "Features" },
-  { href: "#solution", label: "Solution" },
+  { href: "#solution", label: "Features" },
+  { href: "#how-it-works", label: "How It Works" },
   { href: "#testimonials", label: "Testimonials" },
 ] as const;
 

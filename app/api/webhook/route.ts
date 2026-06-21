@@ -5,7 +5,19 @@ import { analyzeSymptomRisk } from "@/lib/symptoms";
 import { transcribeAudio } from "@/lib/transcribe";
 import { generateSpeech } from "@/lib/speak";
 
-const SUPABASE_PROJECT_URL_REGEX = /^https:\/\/[a-z0-9-]+\.supabase\.co\/?/;
+interface WhatsAppMessage {
+  from: string;
+  id: string;
+  type: string;
+  audio?: { id?: string };
+  text?: { body?: string };
+}
+
+interface WhatsAppWebhookBody {
+  entry?: Array<{
+    changes?: Array<{ value?: { messages?: WhatsAppMessage[] } }>;
+  }>;
+}
 
 /**
  * Background processor handles the Patient's incoming message:
@@ -14,7 +26,7 @@ const SUPABASE_PROJECT_URL_REGEX = /^https:\/\/[a-z0-9-]+\.supabase\.co\/?/;
  * 3. Updates risk status/alerts
  * 4. Generates and sends AI response
  */
-async function processMessageInBackground(body: any) {
+async function processMessageInBackground(body: WhatsAppWebhookBody) {
   const supabase = await createClient();
   
   try {
@@ -149,6 +161,8 @@ async function processMessageInBackground(body: any) {
     const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
     const token = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
 
+    let audioMediaId: string | null = null;
+
     if (phoneId && token) {
       // Send text reply to patient
       await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`, {
@@ -160,13 +174,56 @@ async function processMessageInBackground(body: any) {
           text: { body: aiResponse },
         }),
       });
+
+      // Also send a Darija voice note when ElevenLabs is configured.
+      // Text was already delivered above, so any failure here is non-fatal.
+      const elevenKey = process.env.ELEVENLABS_API_KEY?.trim();
+      const voiceId = process.env.ELEVENLABS_VOICE_ID?.trim();
+      if (elevenKey && voiceId && !elevenKey.startsWith("your_") && !voiceId.startsWith("your_")) {
+        try {
+          const speech = await generateSpeech(aiResponse);
+
+          // 1. Upload the audio to WhatsApp media to get a reusable media id.
+          const form = new FormData();
+          form.append("messaging_product", "whatsapp");
+          form.append(
+            "file",
+            new Blob([new Uint8Array(speech)], { type: "audio/mpeg" }),
+            "reply.mp3",
+          );
+          form.append("type", "audio/mpeg");
+          const uploadRes = await fetch(
+            `https://graph.facebook.com/v18.0/${phoneId}/media`,
+            { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form },
+          );
+          const uploadData = await uploadRes.json();
+          audioMediaId = uploadData?.id ?? null;
+
+          // 2. Send the voice note referencing that media id.
+          if (audioMediaId) {
+            await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`, {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                messaging_product: "whatsapp",
+                to: senderPhone,
+                type: "audio",
+                audio: { id: audioMediaId },
+              }),
+            });
+          }
+        } catch (voiceErr) {
+          console.error("[Webhook] Voice reply failed:", voiceErr);
+        }
+      }
     }
 
     // Save the AI's response to DB (role: assistant)
     await supabase.from("messages").insert({
       conversation_id: conv!.id,
       role: "assistant",
-      content: aiResponse
+      content: aiResponse,
+      metadata: audioMediaId ? { voice: true, audio_media_id: audioMediaId } : null,
     });
 
   } catch (error) {

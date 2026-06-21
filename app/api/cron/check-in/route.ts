@@ -18,8 +18,12 @@ export async function GET(req: Request) {
 
   for (const patient of patients) {
     // 3. Generate a personalized, proactive question
-    const checkInPrompt = `It is check-in time. This mother is in week ${patient.gestational_week}. 
-    Based on her notes (${patient.medical_notes}), ask a supportive question in Darija.`;
+    const notes =
+      (patient.medical_history && typeof patient.medical_history === "object"
+        ? patient.medical_history.notes ?? patient.medical_history.last_resume
+        : null) ?? "no specific notes";
+    const checkInPrompt = `It is check-in time. This mother is in week ${patient.gestational_week}.
+    Based on her notes (${notes}), ask a supportive question in Darija.`;
     
     const message = await generateMamaResponse(checkInPrompt, { name: patient.name });
 
