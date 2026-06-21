@@ -1,35 +1,40 @@
+import { ArrowRight, ShieldCheck } from "lucide-react";
+
 export default function CTASection() {
   return (
-    <section
-      id="cta"
-      className="py-16 sm:py-20 md:py-24 relative bg-gradient-to-b from-slate-900 to-slate-950 dark:from-slate-950 dark:to-black"
-    >
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 -z-10"></div>
+    <section id="cta" className="relative py-20 sm:py-28 bg-slate-950 overflow-hidden">
+      {/* Glow + mesh */}
+      <div className="absolute inset-0 bg-mesh opacity-70" aria-hidden="true" />
+      <div
+        className="absolute -bottom-24 left-1/2 -translate-x-1/2 w-[44rem] h-[44rem] bg-primary/15 rounded-full blur-3xl pointer-events-none"
+        aria-hidden="true"
+      />
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 tracking-tight text-white">
-          Bring MamaGuard to Your Clinic
+      <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 ring-1 ring-white/15 text-primary text-xs sm:text-sm font-semibold mb-6">
+          <ShieldCheck className="h-4 w-4" />
+          Free pilot for rural health centers
+        </span>
+
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight text-white text-balance">
+          Bring MamaGuard to your clinic
         </h2>
-        <p className="text-base sm:text-lg md:text-xl text-gray-400 mb-8 sm:mb-12 max-w-2xl mx-auto">
+        <p className="mt-4 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto text-pretty">
           Join the network of care providers transforming maternal health
-          outcomes.
+          outcomes across the region.
         </p>
 
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 p-2 rounded-xl shadow-2xl">
-          <form
-            className="flex flex-col gap-2"
-            method="POST"
-            action="/api/demo-request"
-          >
-            <div className="flex flex-col sm:flex-row gap-2">
+        <div className="mt-10 rounded-2xl bg-white/[0.04] ring-1 ring-white/10 backdrop-blur-sm p-3 shadow-2xl">
+          <form className="flex flex-col gap-2.5" method="POST" action="/api/demo-request">
+            <div className="flex flex-col sm:flex-row gap-2.5">
               <label htmlFor="name" className="sr-only">
                 Your Name
               </label>
               <input
                 id="name"
                 name="name"
-                className="flex-1 bg-slate-900/80 border-0 text-white placeholder-gray-500 px-4 sm:px-6 py-3 sm:py-4 rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all outline-none"
-                placeholder="Your Name"
+                className="flex-1 bg-white/[0.03] ring-1 ring-white/10 text-white placeholder-slate-500 px-5 py-3.5 rounded-xl text-sm focus:ring-2 focus:ring-primary transition-all outline-none"
+                placeholder="Your name"
                 type="text"
                 required
               />
@@ -39,36 +44,37 @@ export default function CTASection() {
               <input
                 id="clinic"
                 name="clinic"
-                className="flex-1 bg-slate-900/80 border-0 text-white placeholder-gray-500 px-4 sm:px-6 py-3 sm:py-4 rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all outline-none"
-                placeholder="Clinic / Organization"
+                className="flex-1 bg-white/[0.03] ring-1 ring-white/10 text-white placeholder-slate-500 px-5 py-3.5 rounded-xl text-sm focus:ring-2 focus:ring-primary transition-all outline-none"
+                placeholder="Clinic / organization"
                 type="text"
                 required
               />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col sm:flex-row gap-2.5">
               <label htmlFor="email" className="sr-only">
                 Email Address
               </label>
               <input
                 id="email"
                 name="email"
-                className="flex-1 bg-slate-900/80 border-0 text-white placeholder-gray-500 px-4 sm:px-6 py-3 sm:py-4 rounded-lg text-sm focus:ring-2 focus:ring-primary transition-all outline-none"
-                placeholder="Email Address"
+                className="flex-1 bg-white/[0.03] ring-1 ring-white/10 text-white placeholder-slate-500 px-5 py-3.5 rounded-xl text-sm focus:ring-2 focus:ring-primary transition-all outline-none"
+                placeholder="Email address"
                 type="email"
                 required
               />
               <button
-                className="bg-primary hover:bg-primary/90 text-white font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-lg transition-all duration-200 whitespace-nowrap shadow-[0_0_20px_rgba(17,180,212,0.3)] hover:shadow-[0_0_30px_rgba(17,180,212,0.5)] text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-950"
+                className="group inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-semibold px-7 py-3.5 rounded-xl transition-all duration-300 whitespace-nowrap shadow-glow hover:-translate-y-0.5 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                 type="submit"
               >
-                Request Demo
+                Request demo
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
           </form>
         </div>
 
-        <p className="mt-4 sm:mt-6 text-xs sm:text-sm text-gray-500">
-          Free pilot program available for rural health centers.
+        <p className="mt-6 text-sm text-slate-500">
+          No credit card required · Set up in minutes · Cancel anytime.
         </p>
       </div>
     </section>

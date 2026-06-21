@@ -1,130 +1,95 @@
+import { AudioLines, Activity, LayoutDashboard, Users, ArrowRight } from "lucide-react";
+
+const FEATURES = [
+  {
+    icon: AudioLines,
+    title: "Voice Check-ins",
+    body: "Automated WhatsApp voice surveys in local dialects let mothers report symptoms easily — no typing required.",
+    tint: "from-teal-500/15 to-teal-400/5 text-teal-600 dark:text-teal-400 ring-teal-500/10",
+  },
+  {
+    icon: Activity,
+    title: "Risk Detection",
+    body: "AI analyzes every response to triage patients instantly, flagging high-risk cases for immediate attention.",
+    tint: "from-blue-500/15 to-blue-400/5 text-blue-600 dark:text-blue-400 ring-blue-500/10",
+  },
+  {
+    icon: LayoutDashboard,
+    title: "Doctor Dashboard",
+    body: "Clinicians get a prioritized patient list with longitudinal health trends to make informed decisions fast.",
+    tint: "from-indigo-500/15 to-indigo-400/5 text-indigo-600 dark:text-indigo-400 ring-indigo-500/10",
+  },
+  {
+    icon: Users,
+    title: "Family Engagement",
+    body: "Keeps partners and family informed with automated updates and educational tips to support the mother.",
+    tint: "from-pink-500/15 to-pink-400/5 text-pink-600 dark:text-pink-400 ring-pink-500/10",
+  },
+];
+
 export default function SolutionSection() {
   return (
     <section
       id="solution"
-      className="py-16 sm:py-20 md:py-24 bg-white dark:bg-slate-900 relative overflow-hidden"
+      className="relative py-20 sm:py-28 bg-white dark:bg-slate-950 overflow-hidden"
     >
-      {/* Abstract gradient blob */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] sm:w-[800px] sm:h-[800px] bg-primary/5 rounded-full blur-3xl pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/5 rounded-full blur-3xl pointer-events-none"
         aria-hidden="true"
-      ></div>
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <header className="mb-10 sm:mb-12 md:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <header className="mb-14 sm:mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="max-w-2xl text-center md:text-left">
-            <span className="text-primary font-semibold tracking-wider uppercase text-xs sm:text-sm mb-2 block">
+            <span className="inline-block text-primary font-semibold tracking-wider uppercase text-xs sm:text-sm mb-3">
               Our Solution
             </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
-              The MamaGuard Ecosystem
+            <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold tracking-tight text-slate-900 dark:text-white text-balance">
+              The MamaGuard ecosystem
             </h2>
-            <p className="mt-3 sm:mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-lg mx-auto md:mx-0">
+            <p className="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-lg mx-auto md:mx-0 text-pretty">
               A comprehensive platform connecting the dots in maternal
-              healthcare through accessible technology.
+              healthcare through accessible, voice-first technology.
             </p>
           </div>
-          <div className="hidden md:block">
-            <a
-              href="#how-it-works"
-              className="text-primary font-medium flex items-center gap-2 hover:text-primary/80 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded px-2 py-1"
-            >
-              Learn about our technology
-              <span
-                className="material-icons-round text-base"
-                aria-hidden="true"
-              >
-                arrow_forward
-              </span>
-            </a>
-          </div>
-        </header>
-
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {/* Feature 1 */}
-          <article className="bg-slate-50 dark:bg-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-            <div
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 flex items-center justify-center mb-3 sm:mb-4"
-              aria-hidden="true"
-            >
-              <span className="material-icons-round text-xl sm:text-2xl">
-                record_voice_over
-              </span>
-            </div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">
-              Voice Check-ins
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-              Automated WhatsApp voice surveys in local dialects allow mothers
-              to report symptoms easily without typing.
-            </p>
-          </article>
-          {/* Feature 2 */}
-          <article className="bg-slate-50 dark:bg-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-            <div
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3 sm:mb-4"
-              aria-hidden="true"
-            >
-              <span className="material-icons-round text-xl sm:text-2xl">
-                analytics
-              </span>
-            </div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">
-              Risk Detection
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-              AI algorithms analyze responses to triage patients instantly,
-              flagging high-risk cases for immediate attention.
-            </p>
-          </article>
-          {/* Feature 3 */}
-          <article className="bg-slate-50 dark:bg-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-            <div
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-3 sm:mb-4"
-              aria-hidden="true"
-            >
-              <span className="material-icons-round text-xl sm:text-2xl">
-                dashboard
-              </span>
-            </div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">
-              Doctor Dashboard
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-              Clinicians see a prioritized list of patients, visualizing
-              longitudinal health data to make informed decisions.
-            </p>
-          </article>
-          {/* Feature 4 */}
-          <article className="bg-slate-50 dark:bg-slate-800 p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 hover:shadow-md transition-shadow">
-            <div
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-pink-50 dark:bg-pink-900/20 text-pink-500 dark:text-pink-400 flex items-center justify-center mb-3 sm:mb-4"
-              aria-hidden="true"
-            >
-              <span className="material-icons-round text-xl sm:text-2xl">
-                family_restroom
-              </span>
-            </div>
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">
-              Family Engagement
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-              Keeps partners and family members informed with automated updates
-              and educational tips to support the mother.
-            </p>
-          </article>
-        </div>
-
-        {/* Mobile CTA button */}
-        <div className="mt-8 text-center md:hidden">
           <a
             href="#how-it-works"
-            className="text-primary font-medium inline-flex items-center gap-2 hover:text-primary/80 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-primary rounded px-2 py-1"
+            className="hidden md:inline-flex shrink-0 items-center gap-2 text-primary font-semibold hover:gap-3 transition-all text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg px-2 py-1"
           >
             Learn about our technology
-            <span className="material-icons-round text-base" aria-hidden="true">
-              arrow_forward
-            </span>
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </a>
+        </header>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
+          {FEATURES.map(({ icon: Icon, title, body, tint }) => (
+            <article
+              key={title}
+              className="group rounded-2xl bg-white dark:bg-slate-900 p-6 ring-1 ring-slate-200/70 dark:ring-white/10 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+            >
+              <div
+                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tint} ring-1 flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-300`}
+                aria-hidden="true"
+              >
+                <Icon className="h-6 w-6" />
+              </div>
+              <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                {title}
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                {body}
+              </p>
+            </article>
+          ))}
+        </div>
+
+        <div className="mt-10 text-center md:hidden">
+          <a
+            href="#how-it-works"
+            className="inline-flex items-center gap-2 text-primary font-semibold text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg px-2 py-1"
+          >
+            Learn about our technology
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </a>
         </div>
       </div>
