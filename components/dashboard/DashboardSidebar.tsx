@@ -19,6 +19,7 @@ import {
   Circle,
 } from "lucide-react";
 import type { Doctor } from "@/types";
+import { createClient } from "@/utils/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -87,9 +88,12 @@ export function SidebarContent({ doctor, onNavigate }: SidebarContentProps) {
     return () => clearInterval(interval);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (confirm("Are you sure you want to end your session?")) {
+      const supabase = createClient();
+      await supabase.auth.signOut();
       router.push("/login");
+      router.refresh();
     }
   };
 

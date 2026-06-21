@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Navigation from "@/components/common/Navigation";
 import Footer from "@/components/common/Footer";
+import { createClient } from "@/utils/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,18 +20,29 @@ export default function LoginPage() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError("");
+
+      if (!email || !password) {
+        setError("Please enter both email and password");
+        return;
+      }
+
       setIsLoading(true);
 
-      // Simulate login
-      setTimeout(() => {
-        if (email && password) {
-          // For demo purposes, accept any credentials
-          router.push("/dashboard");
-        } else {
-          setError("Please enter both email and password");
-          setIsLoading(false);
-        }
-      }, 1000);
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+        setIsLoading(false);
+        return;
+      }
+
+      // refresh() so the proxy middleware sees the new session cookie.
+      router.push("/dashboard");
+      router.refresh();
     },
     [email, password, router],
   );

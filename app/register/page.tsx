@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Navigation from "@/components/common/Navigation";
 import Footer from "@/components/common/Footer";
+import { createClient } from "@/utils/supabase/client";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -95,10 +96,37 @@ export default function RegisterPage() {
 
       setIsLoading(true);
 
-      // Simulate registration
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 1500);
+      const supabase = createClient();
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            role: formData.role,
+            affiliation: formData.affiliation,
+            phone: formData.phone,
+          },
+        },
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
+        setIsLoading(false);
+        return;
+      }
+
+      // If email confirmation is required, there is no active session yet.
+      if (!data.session) {
+        setError(
+          "Account created. Please check your email to confirm, then sign in.",
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
     },
     [formData, router, fieldErrors],
   );
