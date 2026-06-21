@@ -7,6 +7,17 @@ import Image from "next/image";
 import Navigation from "@/components/common/Navigation";
 import Footer from "@/components/common/Footer";
 import { createClient } from "@/utils/supabase/client";
+import {
+  Heart,
+  CircleAlert,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  ArrowRight,
+  ShieldCheck,
+} from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -97,9 +108,7 @@ export default function LoginPage() {
                 {/* Logo & Header */}
                 <div className="text-center space-y-2">
                   <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-primary/10 mb-4 sm:mb-6">
-                    <span className="material-icons-round text-primary text-3xl sm:text-4xl">
-                      favorite
-                    </span>
+                    <Heart className="h-8 w-8 sm:h-9 sm:w-9 text-primary fill-primary" />
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                     Welcome Back
@@ -112,9 +121,7 @@ export default function LoginPage() {
                 {/* Error Message */}
                 {error && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-red-600 text-[20px]">
-                      error
-                    </span>
+                    <CircleAlert className="h-5 w-5 text-red-600" />
                     <p className="text-sm text-red-700">{error}</p>
                   </div>
                 )}
@@ -134,9 +141,7 @@ export default function LoginPage() {
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="material-symbols-outlined text-slate-400 text-xl">
-                          mail
-                        </span>
+                        <Mail className="h-5 w-5 text-slate-400" />
                       </div>
                       <input
                         autoComplete="email"
@@ -165,9 +170,7 @@ export default function LoginPage() {
                     </div>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="material-symbols-outlined text-slate-400 text-xl group-focus-within:text-primary transition-colors">
-                          lock
-                        </span>
+                        <Lock className="h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
                       </div>
                       <input
                         autoComplete="current-password"
@@ -190,9 +193,7 @@ export default function LoginPage() {
                             showPassword ? "Hide password" : "Show password"
                           }
                         >
-                          <span className="material-symbols-outlined text-xl">
-                            {showPassword ? "visibility_off" : "visibility"}
-                          </span>
+                          showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />
                         </button>
                       </div>
                     </div>
@@ -215,17 +216,13 @@ export default function LoginPage() {
                     >
                       {isLoading ? (
                         <>
-                          <span className="material-symbols-outlined animate-spin text-[20px]">
-                            progress_activity
-                          </span>
+                          <Loader2 className="h-5 w-5 animate-spin" />
                           <span>Signing in...</span>
                         </>
                       ) : (
                         <>
                           <span>Secure Login</span>
-                          <span className="material-symbols-outlined text-[20px]">
-                            arrow_forward
-                          </span>
+                          <ArrowRight className="h-5 w-5" />
                         </>
                       )}
                     </button>
@@ -260,18 +257,14 @@ export default function LoginPage() {
                 {/* Footer Trust Badges */}
                 <div className="pt-8 flex items-center justify-center gap-4 text-slate-400 opacity-60">
                   <div className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-base">
-                      verified_user
-                    </span>
+                    <ShieldCheck className="h-4 w-4" />
                     <span className="text-xs font-semibold tracking-wide">
                       HIPAA Compliant
                     </span>
                   </div>
                   <div className="w-1 h-1 rounded-full bg-slate-400"></div>
                   <div className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-base">
-                      lock
-                    </span>
+                    <Lock className="h-4 w-4" />
                     <span className="text-xs font-semibold tracking-wide">
                       SSL Encrypted
                     </span>

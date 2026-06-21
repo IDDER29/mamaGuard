@@ -7,6 +7,24 @@ import Link from "next/link";
 import Navigation from "@/components/common/Navigation";
 import Footer from "@/components/common/Footer";
 import { createClient } from "@/utils/supabase/client";
+import {
+  ArrowLeft,
+  ArrowRight,
+  IdCard,
+  CheckCircle2,
+  Building2,
+  CircleAlert,
+  ChevronDown,
+  Hospital,
+  Lock,
+  Mail,
+  User,
+  Phone,
+  Briefcase,
+  Stethoscope,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -208,9 +226,7 @@ export default function RegisterPage() {
                 {/* Logo & Header */}
                 <div className="text-center space-y-2 mb-8">
                   <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-primary/10 mb-4 sm:mb-6">
-                    <span className="material-symbols-outlined text-primary text-3xl sm:text-4xl">
-                      local_hospital
-                    </span>
+                    <Hospital className="h-8 w-8 sm:h-9 sm:w-9 text-primary" />
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                     Clinician Registration
@@ -243,9 +259,7 @@ export default function RegisterPage() {
                 {/* Error Message */}
                 {error && (
                   <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2 mb-6">
-                    <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-[20px]">
-                      error
-                    </span>
+                    <CircleAlert className="h-5 w-5 text-red-600 dark:text-red-400 text-[20px]" />
                     <p className="text-sm text-red-700 dark:text-red-300">
                       {error}
                     </p>
@@ -257,9 +271,7 @@ export default function RegisterPage() {
                   {/* Section 1: Personal Information */}
                   <section className="space-y-6">
                     <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 uppercase text-xs font-bold tracking-wider">
-                      <span className="material-symbols-outlined text-sm">
-                        person
-                      </span>
+                      <User className="h-5 w-5 text-sm" />
                       Personal Information
                     </div>
 
@@ -274,9 +286,7 @@ export default function RegisterPage() {
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="material-symbols-outlined text-slate-400 text-xl">
-                              badge
-                            </span>
+                            <IdCard className="h-5 w-5 text-slate-400 text-xl" />
                           </div>
                           <input
                             className="block w-full pl-10 pr-3 py-3 sm:py-3.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
@@ -303,9 +313,7 @@ export default function RegisterPage() {
                           </label>
                           <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                              <span className="material-symbols-outlined text-slate-400 text-xl">
-                                mail
-                              </span>
+                              <Mail className="h-5 w-5 text-slate-400 text-xl" />
                             </div>
                             <input
                               autoComplete="email"
@@ -334,9 +342,7 @@ export default function RegisterPage() {
                               id="email-error"
                               className="mt-1.5 text-xs text-red-600 dark:text-red-400 flex items-center gap-1"
                             >
-                              <span className="material-symbols-outlined text-xs">
-                                error
-                              </span>
+                              <CircleAlert className="h-5 w-5 text-xs" />
                               {fieldErrors.email}
                             </p>
                           )}
@@ -351,9 +357,7 @@ export default function RegisterPage() {
                           </label>
                           <div className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                              <span className="material-symbols-outlined text-slate-400 text-xl">
-                                phone
-                              </span>
+                              <Phone className="h-5 w-5 text-slate-400 text-xl" />
                             </div>
                             <input
                               autoComplete="tel"
@@ -383,9 +387,7 @@ export default function RegisterPage() {
                   {/* Section 2: Professional Credentials */}
                   <section className="space-y-6">
                     <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 uppercase text-xs font-bold tracking-wider">
-                      <span className="material-symbols-outlined text-sm">
-                        medical_services
-                      </span>
+                      <Stethoscope className="h-5 w-5 text-sm" />
                       Professional Credentials
                     </div>
 
@@ -400,9 +402,7 @@ export default function RegisterPage() {
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="material-symbols-outlined text-slate-400 text-xl">
-                              work
-                            </span>
+                            <Briefcase className="h-5 w-5 text-slate-400 text-xl" />
                           </div>
                           <select
                             className="block w-full pl-10 pr-10 py-3 sm:py-3.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm appearance-none cursor-pointer"
@@ -421,9 +421,7 @@ export default function RegisterPage() {
                             <option value="specialist">Specialist</option>
                           </select>
                           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <span className="material-symbols-outlined text-slate-400 text-xl">
-                              expand_more
-                            </span>
+                            <ChevronDown className="h-5 w-5 text-slate-400 text-xl" />
                           </div>
                         </div>
                       </div>
@@ -438,9 +436,7 @@ export default function RegisterPage() {
                         </label>
                         <div className="relative">
                           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span className="material-symbols-outlined text-slate-400 text-xl">
-                              domain
-                            </span>
+                            <Building2 className="h-5 w-5 text-slate-400 text-xl" />
                           </div>
                           <input
                             className="block w-full pl-10 pr-3 py-3 sm:py-3.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-sm"
@@ -468,9 +464,7 @@ export default function RegisterPage() {
                   {/* Section 3: Security */}
                   <section className="space-y-6">
                     <div className="flex items-center gap-2 text-slate-400 dark:text-slate-500 uppercase text-xs font-bold tracking-wider">
-                      <span className="material-symbols-outlined text-sm">
-                        lock
-                      </span>
+                      <Lock className="h-5 w-5 text-sm" />
                       Security
                     </div>
 
@@ -505,9 +499,7 @@ export default function RegisterPage() {
                               showPassword ? "Hide password" : "Show password"
                             }
                           >
-                            <span className="material-symbols-outlined text-xl">
-                              {showPassword ? "visibility" : "visibility_off"}
-                            </span>
+                            {showPassword ? <Eye className="h-5 w-5 text-xl" /> : <EyeOff className="h-5 w-5 text-xl" />}
                           </button>
                         </div>
 
@@ -592,11 +584,7 @@ export default function RegisterPage() {
                                 : "Show password"
                             }
                           >
-                            <span className="material-symbols-outlined text-xl">
-                              {showConfirmPassword
-                                ? "visibility"
-                                : "visibility_off"}
-                            </span>
+                            {showConfirmPassword ? <Eye className="h-5 w-5 text-xl" /> : <EyeOff className="h-5 w-5 text-xl" />}
                           </button>
                         </div>
 
@@ -606,9 +594,7 @@ export default function RegisterPage() {
                             id="confirm-password-error"
                             className="mt-1.5 text-xs text-red-600 dark:text-red-400 flex items-center gap-1"
                           >
-                            <span className="material-symbols-outlined text-xs">
-                              error
-                            </span>
+                            <CircleAlert className="h-5 w-5 text-xs" />
                             Passwords do not match
                           </p>
                         )}
@@ -617,9 +603,7 @@ export default function RegisterPage() {
                             id="confirm-password-success"
                             className="mt-1.5 text-xs text-green-600 dark:text-green-400 flex items-center gap-1"
                           >
-                            <span className="material-symbols-outlined text-xs">
-                              check_circle
-                            </span>
+                            <CheckCircle2 className="h-5 w-5 text-xs" />
                             Passwords match
                           </p>
                         )}
@@ -689,9 +673,7 @@ export default function RegisterPage() {
                       ) : (
                         <>
                           Create Clinical Account
-                          <span className="material-symbols-outlined text-white/80 group-hover:translate-x-1 transition-transform text-sm">
-                            arrow_forward
-                          </span>
+                          <ArrowRight className="h-5 w-5 text-white/80 group-hover:translate-x-1 transition-transform text-sm" />
                         </>
                       )}
                     </button>
@@ -701,9 +683,7 @@ export default function RegisterPage() {
                         href="/login"
                         className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors inline-flex items-center gap-1 group"
                       >
-                        <span className="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">
-                          arrow_back
-                        </span>
+                        <ArrowLeft className="h-5 w-5 text-sm group-hover:-translate-x-1 transition-transform" />
                         Back to Login
                       </Link>
                     </div>

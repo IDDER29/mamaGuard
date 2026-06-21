@@ -29,18 +29,6 @@ export default function RootLayout({
           // Sets the theme class before first paint to prevent a flash of the wrong theme.
           dangerouslySetInnerHTML={{ __html: themeInitScript }}
         />
-        <link
-          href="https://fonts.googleapis.com/icon?family=Material+Icons"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/icon?family=Material+Icons+Round"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body
         className={`${inter.variable} antialiased font-display`}
