@@ -27,6 +27,7 @@ interface AlertRow {
   symptom_name: string | null;
   created_at: string;
   escalation_level?: number;
+  owner_name?: string | null;
   patients?: { full_name: string | null; name: string | null; phone_number: string | null } | null;
 }
 
@@ -174,7 +175,7 @@ export default function AlertsQueuePage() {
               </span>
               {a.status === "acknowledged" && (
                 <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                  ack&apos;d
+                  {a.owner_name ? `ack'd · ${a.owner_name}` : "ack'd"}
                 </span>
               )}
               {sla && (

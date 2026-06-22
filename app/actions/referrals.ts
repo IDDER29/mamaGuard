@@ -107,3 +107,40 @@ export async function listFacilities(
   }
   return (data ?? []) as FacilityRow[];
 }
+
+// Plan E4.3 — facility directory management (admin console).
+export async function createFacility(input: {
+  name: string;
+  type?: string;
+  region?: string;
+  city?: string;
+  phone?: string;
+}): Promise<Result<{ id: string }>> {
+  const supabase = await createAdminClient();
+  const { data, error } = await supabase
+    .from("facilities")
+    .insert({
+      name: input.name,
+      type: input.type ?? null,
+      region: input.region ?? null,
+      city: input.city ?? null,
+      phone: input.phone ?? null,
+    })
+    .select("id")
+    .single();
+  if (error) {
+    console.error("[createFacility]", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true, data: { id: data!.id } };
+}
+
+export async function deleteFacility(id: string): Promise<Result> {
+  const supabase = await createAdminClient();
+  const { error } = await supabase.from("facilities").delete().eq("id", id);
+  if (error) {
+    console.error("[deleteFacility]", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}

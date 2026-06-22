@@ -25,6 +25,8 @@ export interface DashboardAlert {
   symptom_name: string | null;
   created_at: string;
   escalation_level: number;
+  assigned_to: string | null;
+  owner_name?: string | null;
   patients: JoinedPatient | null;
 }
 
@@ -40,14 +42,25 @@ export async function listActiveAlerts(): Promise<DashboardAlert[]> {
   const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from("alerts")
-    .select("id, patient_id, urgency, status, symptom_name, created_at, escalation_level, patients(full_name, name, phone_number, assigned_chw)")
+    .select("id, patient_id, urgency, status, symptom_name, created_at, escalation_level, assigned_to, patients(full_name, name, phone_number, assigned_chw)")
     .in("status", ["active", "acknowledged"])
     .order("created_at", { ascending: false });
   if (error) {
     console.error("[listActiveAlerts]", error);
     return [];
   }
-  return (data ?? []) as unknown as DashboardAlert[];
+  const alerts = (data ?? []) as unknown as DashboardAlert[];
+  // Resolve owner names (Plan E3.5) from the small profiles table.
+  const ownerIds = [...new Set(alerts.map((a) => a.assigned_to).filter(Boolean))] as string[];
+  if (ownerIds.length) {
+    const { data: profs } = await supabase
+      .from("clinician_profiles")
+      .select("user_id, full_name")
+      .in("user_id", ownerIds);
+    const nameByUser = new Map((profs ?? []).map((p) => [p.user_id as string, p.full_name as string | null]));
+    for (const a of alerts) a.owner_name = a.assigned_to ? nameByUser.get(a.assigned_to) ?? null : null;
+  }
+  return alerts;
 }
 
 export async function listWorklist(): Promise<{
@@ -59,7 +72,7 @@ export async function listWorklist(): Promise<{
   const [alertsRes, visitsRes] = await Promise.all([
     supabase
       .from("alerts")
-      .select("id, patient_id, urgency, status, symptom_name, created_at, escalation_level, patients(full_name, name, phone_number, assigned_chw)")
+      .select("id, patient_id, urgency, status, symptom_name, created_at, escalation_level, assigned_to, patients(full_name, name, phone_number, assigned_chw)")
       .in("status", ["active", "acknowledged"])
       .order("created_at", { ascending: false }),
     supabase

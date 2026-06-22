@@ -5,6 +5,7 @@ import type { Doctor, DashboardStats } from "@/types";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardSidebarMobile from "./DashboardSidebarMobile";
 import DashboardHeader, { type Notification } from "./DashboardHeader";
+import { OfflineBanner } from "./StateViews";
 import { createClient } from "@/utils/supabase/client";
 import {
   listNotifications,
@@ -12,6 +13,8 @@ import {
   markAllNotificationsRead,
   type NotificationRow,
 } from "@/app/actions/notifications";
+import { getCurrentProfile } from "@/app/actions/profiles";
+import type { Role } from "@/lib/roles";
 
 interface DashboardChromeProps {
   doctor: Doctor;
@@ -54,6 +57,7 @@ export default function DashboardChrome({
 }: DashboardChromeProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [role, setRole] = useState<Role | null>(null);
 
   const refresh = useCallback(async () => {
     const rows = await listNotifications();
@@ -64,8 +68,10 @@ export default function DashboardChrome({
     let active = true;
     const supabase = createClient();
     (async () => {
-      const rows = await listNotifications();
-      if (active) setNotifications(rows.map(toHeaderNotification));
+      const [rows, profile] = await Promise.all([listNotifications(), getCurrentProfile()]);
+      if (!active) return;
+      setNotifications(rows.map(toHeaderNotification));
+      setRole(profile.role);
     })();
     const channel = supabase
       .channel("notifications-feed")
@@ -91,7 +97,7 @@ export default function DashboardChrome({
 
   return (
     <div className="light h-screen flex bg-background text-foreground overflow-hidden">
-      <DashboardSidebar doctor={doctor} />
+      <DashboardSidebar doctor={doctor} role={role} />
       <DashboardSidebarMobile
         doctor={doctor}
         open={mobileNavOpen}
@@ -99,6 +105,7 @@ export default function DashboardChrome({
       />
 
       <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+        <OfflineBanner />
         <DashboardHeader
           stats={stats}
           notifications={notifications}

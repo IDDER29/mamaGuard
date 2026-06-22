@@ -34,13 +34,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { can, type Role } from "@/lib/roles";
 
 interface DashboardSidebarProps {
   doctor: Doctor;
+  role?: Role | null;
 }
 
 interface SidebarContentProps {
   doctor: Doctor;
+  role?: Role | null;
   /** Called after a navigation item is clicked (used to close the mobile drawer). */
   onNavigate?: () => void;
 }
@@ -57,19 +60,19 @@ interface NavItem {
  * Desktop sidebar rail. Hidden below `lg`; on smaller screens the same content
  * is rendered inside a slide-in drawer (see DashboardSidebarMobile).
  */
-export default function DashboardSidebar({ doctor }: DashboardSidebarProps) {
+export default function DashboardSidebar({ doctor, role }: DashboardSidebarProps) {
   return (
     <aside
       className="hidden lg:flex w-72 shrink-0 h-screen border-r border-slate-200"
       role="navigation"
       aria-label="Clinical navigation sidebar"
     >
-      <SidebarContent doctor={doctor} />
+      <SidebarContent doctor={doctor} role={role} />
     </aside>
   );
 }
 
-export function SidebarContent({ doctor, onNavigate }: SidebarContentProps) {
+export function SidebarContent({ doctor, role, onNavigate }: SidebarContentProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [currentTime, setCurrentTime] = useState("");
@@ -147,6 +150,17 @@ export function SidebarContent({ doctor, onNavigate }: SidebarContentProps) {
       href: "/dashboard/protocols",
       icon: FileText,
       label: "Protocols",
+    },
+    ...(can(role, "supervise")
+      ? [{ href: "/dashboard/team", icon: Users, label: "Team" } as NavItem]
+      : []),
+    ...(can(role, "admin")
+      ? [{ href: "/dashboard/admin", icon: Shield, label: "Admin" } as NavItem]
+      : []),
+    {
+      href: "/dashboard/settings",
+      icon: Settings,
+      label: "Settings",
     },
   ];
 
