@@ -41,6 +41,14 @@ CREATE TABLE patients (
   partner_opt_in            boolean NOT NULL DEFAULT false,
   postpartum                boolean NOT NULL DEFAULT false,
   delivery_date             date,
+  -- Consent / data protection (Law 09-08 / CNDP, Plan 1.3)
+  consent_given             boolean NOT NULL DEFAULT false,
+  consent_at                timestamptz,
+  consent_version           text,
+  data_retention_until      date,
+  -- Delivery channel (Plan 2.2)
+  preferred_channel         text NOT NULL DEFAULT 'whatsapp'
+                              CHECK (preferred_channel IN ('whatsapp','sms','ussd','voice')),
   preferred_checkup_time    time,
   voice_reporting_frequency text,
   language                  text DEFAULT 'darija',

@@ -45,6 +45,14 @@ export function normalizePatient(row: Record<string, unknown>): Patient {
     has_smartphone: Boolean(row.has_smartphone),
     postpartum: Boolean(row.postpartum),
     delivery_date: row.delivery_date != null ? String(row.delivery_date) : null,
+    consent_given: Boolean(row.consent_given),
+    consent_at: row.consent_at != null ? String(row.consent_at) : null,
+    consent_version: row.consent_version != null ? String(row.consent_version) : null,
+    data_retention_until:
+      row.data_retention_until != null ? String(row.data_retention_until) : null,
+    preferred_channel: ["whatsapp", "sms", "ussd", "voice"].includes(String(row.preferred_channel))
+      ? (row.preferred_channel as Patient["preferred_channel"])
+      : "whatsapp",
   };
 }
 

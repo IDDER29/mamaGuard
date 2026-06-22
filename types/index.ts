@@ -37,6 +37,15 @@ export interface Patient {
   // Postpartum (Phase 3)
   postpartum: boolean;
   delivery_date: string | null;
+
+  // Consent / data protection (Plan 1.3)
+  consent_given: boolean;
+  consent_at: string | null;
+  consent_version: string | null;
+  data_retention_until: string | null;
+
+  // Delivery channel (Plan 2.2)
+  preferred_channel: "whatsapp" | "sms" | "ussd" | "voice";
 }
 
 export interface Alert {

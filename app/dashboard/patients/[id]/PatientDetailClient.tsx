@@ -29,6 +29,8 @@ import type { VitalRow } from "@/app/actions/vitals";
 import { PostpartumCard } from "./components/PostpartumCard";
 import { EpdsCard } from "./components/EpdsCard";
 import { VitalsCard } from "./components/VitalsCard";
+import { SymptomTrends } from "@/components/dashboard/SymptomTrends";
+import { TrendingUp } from "lucide-react";
 
 export interface MessageRow {
   id: string;
@@ -322,6 +324,8 @@ export function PatientDetailClient({
                 { label: "Blood Type", value: patient.blood_type ?? "—" },
                 { label: "Due Date", value: formatDate(patient.due_date) },
                 { label: "Allergies", value: patient.allergies ?? "None recorded" },
+                { label: "Channel", value: patient.preferred_channel },
+                { label: "Consent", value: patient.consent_given ? "Given" : "Not recorded" },
               ].map((item) => (
                 <li key={item.label}>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{item.label}</p>
@@ -454,6 +458,17 @@ export function PatientDetailClient({
           />
           <VitalsCard patientId={patientId} vitals={initialVitals} />
           <EpdsCard patientId={patientId} screenings={initialEpds} />
+
+          {/* Symptom trends (Plan 3.4) */}
+          <section className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+              <TrendingUp className="h-4.5 w-4.5 text-primary" />
+              <h2 className="text-sm font-semibold text-slate-800">Symptom Trends</h2>
+            </div>
+            <div className="p-4">
+              <SymptomTrends messages={messages} />
+            </div>
+          </section>
         </aside>
 
         {/* Center: Daily summary + Chat */}

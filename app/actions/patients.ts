@@ -29,7 +29,11 @@ export type PatientFormData = {
   voiceReportingFrequency: string;
   languagePreference: string;
   hasSmartphone: boolean;
+  consentGiven?: boolean;
 };
+
+/** Consent text version recorded with each patient (Plan 1.3). Bump when wording changes. */
+const CONSENT_VERSION = "v1-2026-06";
 
 function formatPhone(countryCode: string, phone: string): string {
   const combined = `${countryCode}${phone}`.replace(/\s/g, "");
@@ -98,6 +102,12 @@ export async function registerPatient(
     voice_reporting_frequency: formData.voiceReportingFrequency || null,
     language: formData.languagePreference || "darija",
     has_smartphone: formData.hasSmartphone ?? true,
+    // Consent captured at onboarding (Plan 1.3).
+    consent_given: formData.consentGiven ?? true,
+    consent_at: new Date().toISOString(),
+    consent_version: CONSENT_VERSION,
+    // Channel preference (Plan 2.2): no smartphone -> SMS fallback.
+    preferred_channel: formData.hasSmartphone === false ? "sms" : "whatsapp",
   };
 
   const { data: patient, error: insertError } = await supabase
