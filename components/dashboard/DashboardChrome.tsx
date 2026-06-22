@@ -16,6 +16,11 @@ import {
 } from "@/app/actions/notifications";
 import { getCurrentProfile } from "@/app/actions/profiles";
 import type { Role } from "@/lib/roles";
+import {
+  LocaleProvider,
+  useLocale,
+} from "@/lib/i18n/LocaleProvider";
+import { toUiLocale, UI_LOCALES, type UiLocale } from "@/lib/i18n/dictionaries";
 
 interface DashboardChromeProps {
   doctor: Doctor;
@@ -59,6 +64,7 @@ export default function DashboardChrome({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [role, setRole] = useState<Role | null>(null);
+  const [initialLocale, setInitialLocale] = useState<UiLocale>("en");
 
   const refresh = useCallback(async () => {
     const rows = await listNotifications();
@@ -73,6 +79,7 @@ export default function DashboardChrome({
       if (!active) return;
       setNotifications(rows.map(toHeaderNotification));
       setRole(profile.role);
+      setInitialLocale(toUiLocale(profile.ui_language));
     })();
     const channel = supabase
       .channel("notifications-feed")
@@ -97,29 +104,56 @@ export default function DashboardChrome({
   }, []);
 
   return (
-    <div className="light h-screen flex bg-background text-foreground overflow-hidden">
-      <DashboardSidebar doctor={doctor} role={role} />
-      <DashboardSidebarMobile
-        doctor={doctor}
-        open={mobileNavOpen}
-        onOpenChange={setMobileNavOpen}
-      />
-
-      <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
-        <OfflineBanner />
-        <DashboardHeader
-          stats={stats}
-          notifications={notifications}
-          onRefresh={refresh}
-          onMarkAsRead={onMarkAsRead}
-          onMarkAllAsRead={onMarkAllAsRead}
-          onDismissNotification={onMarkAsRead}
-          enableNotificationSound
-          onOpenSidebar={() => setMobileNavOpen(true)}
+    <LocaleProvider key={initialLocale} initialLocale={initialLocale}>
+      <div className="light h-screen flex bg-background text-foreground overflow-hidden">
+        <DashboardSidebar doctor={doctor} role={role} />
+        <DashboardSidebarMobile
+          doctor={doctor}
+          open={mobileNavOpen}
+          onOpenChange={setMobileNavOpen}
         />
-        <div className="flex-1 overflow-y-auto bg-slate-50/50 pb-16 lg:pb-0">{children}</div>
-      </main>
-      <MobileBottomNav />
+
+        <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+          <LanguageSwitcher />
+          <OfflineBanner />
+          <DashboardHeader
+            stats={stats}
+            notifications={notifications}
+            onRefresh={refresh}
+            onMarkAsRead={onMarkAsRead}
+            onMarkAllAsRead={onMarkAllAsRead}
+            onDismissNotification={onMarkAsRead}
+            enableNotificationSound
+            onOpenSidebar={() => setMobileNavOpen(true)}
+          />
+          <div className="flex-1 overflow-y-auto bg-slate-50/50 pb-16 lg:pb-0">{children}</div>
+        </main>
+        <MobileBottomNav />
+      </div>
+    </LocaleProvider>
+  );
+}
+
+/** Unobtrusive EN/FR/AR toggle, rendered just above the offline banner. */
+function LanguageSwitcher() {
+  const { locale, setLocale } = useLocale();
+  return (
+    <div className="flex justify-end gap-1 px-3 py-1.5 bg-slate-50/50 border-b border-slate-200">
+      {UI_LOCALES.map((l) => (
+        <button
+          key={l}
+          type="button"
+          onClick={() => setLocale(l)}
+          aria-pressed={locale === l}
+          className={`rounded px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide transition-colors ${
+            locale === l
+              ? "bg-primary text-white"
+              : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          }`}
+        >
+          {l}
+        </button>
+      ))}
     </div>
   );
 }

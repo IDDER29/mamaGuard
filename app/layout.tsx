@@ -4,6 +4,7 @@ import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider, themeInitScript } from "@/components/theme/ThemeProvider";
+import { PWARegister } from "@/components/PWARegister";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
   title: "MamaGuard - Maternal Early-Warning Platform",
   description:
     "Bridging the gap between rural mothers and medical professionals. We use voice-first technology and WhatsApp to deliver real-time early warning signs to doctors.",
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
@@ -37,6 +39,7 @@ export default function RootLayout({
         <ThemeProvider>
           <TooltipProvider delayDuration={300}>{children}</TooltipProvider>
           <Toaster />
+          <PWARegister />
         </ThemeProvider>
       </body>
     </html>

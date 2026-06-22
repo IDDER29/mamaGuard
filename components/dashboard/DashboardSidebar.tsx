@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { can, type Role } from "@/lib/roles";
+import { useT } from "@/lib/i18n/LocaleProvider";
 
 interface DashboardSidebarProps {
   doctor: Doctor;
@@ -75,6 +76,7 @@ export default function DashboardSidebar({ doctor, role }: DashboardSidebarProps
 export function SidebarContent({ doctor, role, onNavigate }: SidebarContentProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const t = useT();
   const [currentTime, setCurrentTime] = useState("");
   const shiftDuration = "2h 34m";
 
@@ -246,7 +248,7 @@ export function SidebarContent({ doctor, role, onNavigate }: SidebarContentProps
                   }`}
                   aria-hidden="true"
                 />
-                <span className="text-sm flex-1">{item.label}</span>
+                <span className="text-sm flex-1">{t(item.label)}</span>
 
                 {/* Priority Badge */}
                 {item.badge && (
@@ -273,7 +275,7 @@ export function SidebarContent({ doctor, role, onNavigate }: SidebarContentProps
         {/* Quick Actions */}
         <div className="space-y-0.5">
           <div className="px-3 py-2 text-xs uppercase tracking-wider text-slate-500 font-semibold">
-            Quick Access
+            {t("Quick Access")}
           </div>
           {quickActions.map((item) => {
             const active = isActive(item.href);
@@ -291,7 +293,7 @@ export function SidebarContent({ doctor, role, onNavigate }: SidebarContentProps
                 }`}
               >
                 <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                <span className="flex-1">{item.label}</span>
+                <span className="flex-1">{t(item.label)}</span>
                 {item.badge && (
                   <Badge
                     variant="secondary"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,6 +34,7 @@ import { VitalsCard } from "./components/VitalsCard";
 import { ReferralsCard } from "./components/ReferralsCard";
 import { SymptomTrends } from "@/components/dashboard/SymptomTrends";
 import { REPLY_TEMPLATES } from "@/lib/replyTemplates";
+import { computeRiskScore } from "@/lib/riskScore";
 import { TrendingUp, UserCheck } from "lucide-react";
 
 export interface MessageRow {
@@ -104,6 +105,7 @@ export function PatientDetailClient({
   const [appointments, setAppointments] = useState<AppointmentRow[]>(initialAppointments);
   const [newApptAt, setNewApptAt] = useState("");
   const [newApptLocation, setNewApptLocation] = useState("");
+  const [newApptMeetingUrl, setNewApptMeetingUrl] = useState("");
   const [savingAppt, setSavingAppt] = useState(false);
 
   // Plan 2.4 — partner / family engagement.
@@ -139,6 +141,21 @@ export function PatientDetailClient({
     else alert(res.error || "Failed to erase patient");
   }, [patientId, router]);
 
+  // Plan E8.2 — transparent predictive risk score (advisory; never overrides triage).
+  const riskScore = useMemo(() => {
+    const lastV = initialVitals[initialVitals.length - 1];
+    const lastE = initialEpds[0];
+    const missed = initialAppointments.filter((a) => a.status === "missed").length;
+    return computeRiskScore({
+      riskLevel: patient.risk_level,
+      latestSystolic: lastV?.systolic ?? null,
+      latestDiastolic: lastV?.diastolic ?? null,
+      epdsRisk: lastE?.risk_flag ?? false,
+      epdsSelfHarm: (lastE?.q10_score ?? 0) > 0,
+      missedVisits: missed,
+    });
+  }, [patient.risk_level, initialVitals, initialEpds, initialAppointments]);
+
   useEffect(() => {
     setAppointments(initialAppointments);
   }, [initialAppointments]);
@@ -171,16 +188,19 @@ export function PatientDetailClient({
       patientId,
       scheduledAt: new Date(newApptAt).toISOString(),
       location: newApptLocation.trim() || undefined,
+      meetingUrl: newApptMeetingUrl.trim() || undefined,
+      type: newApptMeetingUrl.trim() ? "teleconsult" : undefined,
     });
     setSavingAppt(false);
     if (res.success) {
       setNewApptAt("");
       setNewApptLocation("");
+      setNewApptMeetingUrl("");
       router.refresh();
     } else {
       alert(res.error || "Failed to schedule appointment");
     }
-  }, [newApptAt, newApptLocation, savingAppt, patientId, router]);
+  }, [newApptAt, newApptLocation, newApptMeetingUrl, savingAppt, patientId, router]);
 
   // We maintain messages in chronological order (Oldest -> Newest)
   const [messages, setMessages] = useState<MessageRow[]>(initialMessages);
@@ -352,6 +372,20 @@ export function PatientDetailClient({
           >
             {riskKey} risk
           </span>
+          <span
+            title={riskScore.reasons.join(" · ") || "No contributing factors"}
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 ${
+              riskScore.band === "high"
+                ? "bg-rose-50 text-rose-700 ring-rose-200"
+                : riskScore.band === "elevated"
+                  ? "bg-orange-50 text-orange-700 ring-orange-200"
+                  : riskScore.band === "moderate"
+                    ? "bg-amber-50 text-amber-700 ring-amber-200"
+                    : "bg-slate-50 text-slate-600 ring-slate-200"
+            }`}
+          >
+            risk score {riskScore.score}
+          </span>
         </div>
       </header>
 
@@ -416,9 +450,19 @@ export function PatientDetailClient({
                           })}
                         </p>
                         <p className="text-xs text-slate-500 truncate">
-                          {a.location || "—"} · {a.status}
+                          {a.location || (a.meeting_url ? "Teleconsult" : "—")} · {a.status}
                           {a.reminder_sent_at ? " · reminded" : ""}
                         </p>
+                        {a.meeting_url && (
+                          <a
+                            href={a.meeting_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline"
+                          >
+                            Join teleconsult →
+                          </a>
+                        )}
                       </div>
                     </li>
                   ))}
@@ -437,6 +481,13 @@ export function PatientDetailClient({
                   value={newApptLocation}
                   onChange={(e) => setNewApptLocation(e.target.value)}
                   placeholder="Location (optional)"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/15 outline-none"
+                />
+                <input
+                  type="url"
+                  value={newApptMeetingUrl}
+                  onChange={(e) => setNewApptMeetingUrl(e.target.value)}
+                  placeholder="Teleconsult link (optional)"
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/15 outline-none"
                 />
                 <button

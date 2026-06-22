@@ -120,8 +120,41 @@ CREATE TABLE appointments (
                      CHECK (status IN ('scheduled','confirmed','completed','missed','cancelled')),
   reminder_sent_at timestamptz,
   notes            text,
+  meeting_url      text,                      -- teleconsult link (Plan E8.1)
   created_at       timestamptz NOT NULL DEFAULT now(),
   updated_at       timestamptz NOT NULL DEFAULT now()
+);
+
+-- 13. MESSAGE DELIVERIES (channel send log, Plan E2.4)
+CREATE TABLE message_deliveries (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id  uuid REFERENCES patients (id) ON DELETE CASCADE,
+  channel     text NOT NULL,
+  status      text NOT NULL DEFAULT 'sent',
+  attempts    int NOT NULL DEFAULT 1,
+  error       text,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
+-- 14. PATIENT IDENTIFIERS (cross-channel identity, Plan E6.4)
+CREATE TABLE patient_identifiers (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id uuid NOT NULL REFERENCES patients (id) ON DELETE CASCADE,
+  channel    text NOT NULL,
+  value      text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (channel, value)
+);
+
+-- 15. CLINICIAN INVITES (Plan E4.2)
+CREATE TABLE clinician_invites (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email       text NOT NULL,
+  role        text NOT NULL DEFAULT 'clinician'
+                CHECK (role IN ('chw','nurse','clinician','supervisor','admin','integration')),
+  token       text NOT NULL UNIQUE,
+  accepted_at timestamptz,
+  created_at  timestamptz NOT NULL DEFAULT now()
 );
 
 -- 9. FACILITIES (referral directory, Plan 4.4)
@@ -225,6 +258,8 @@ CREATE INDEX idx_referrals_status ON referrals (status);
 CREATE INDEX idx_notifications_recipient ON notifications (recipient, read_at);
 CREATE INDEX idx_notifications_created ON notifications (created_at DESC);
 CREATE INDEX idx_clinician_profiles_role ON clinician_profiles (role);
+CREATE INDEX idx_deliveries_patient ON message_deliveries (patient_id, created_at DESC);
+CREATE INDEX idx_identifiers_patient ON patient_identifiers (patient_id);
 
 -- Keep updated_at fresh on patients
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -254,6 +289,9 @@ ALTER TABLE facilities    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referrals     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clinician_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE message_deliveries  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE patient_identifiers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clinician_invites   ENABLE ROW LEVEL SECURITY;
 
 -- Authenticated clinicians: full access to clinical data.
 CREATE POLICY "authenticated full access" ON patients
@@ -277,6 +315,12 @@ CREATE POLICY "authenticated full access" ON referrals
 CREATE POLICY "authenticated full access" ON notifications
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated full access" ON clinician_profiles
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated full access" ON message_deliveries
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated full access" ON patient_identifiers
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated full access" ON clinician_invites
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 -- Audit log: clinicians may read; only the service role writes (immutability).
 CREATE POLICY "authenticated read audit" ON audit_log

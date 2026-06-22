@@ -8,6 +8,7 @@ import {
   parseIntent,
   helpMessage,
   stopConfirmMessage,
+  startConfirmMessage,
   languageConfirmMessage,
 } from "@/lib/conversation";
 
@@ -202,6 +203,14 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
             .update({ consent_given: false, updated_at: new Date().toISOString() })
             .eq("id", currentPatient.id);
           await reply(stopConfirmMessage());
+          return;
+        }
+        if (intent.kind === "start") {
+          await supabase
+            .from("patients")
+            .update({ consent_given: true, consent_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+            .eq("id", currentPatient.id);
+          await reply(startConfirmMessage());
           return;
         }
         if (intent.kind === "help") {

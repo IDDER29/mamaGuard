@@ -1,0 +1,13 @@
+{
+  "name": "MamaGuard — Clinical Portal",
+  "short_name": "MamaGuard",
+  "description": "Maternal early-warning triage and patient management.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" }
+  ]
+}

@@ -14,6 +14,7 @@ export interface AppointmentRow {
   status: "scheduled" | "confirmed" | "completed" | "missed" | "cancelled";
   reminder_sent_at: string | null;
   notes: string | null;
+  meeting_url: string | null;
   created_at: string;
 }
 
@@ -27,6 +28,7 @@ export async function createAppointment(input: {
   type?: string;
   location?: string;
   notes?: string;
+  meetingUrl?: string;
 }): Promise<Result<{ id: string }>> {
   const supabase = await createAdminClient();
   const { data, error } = await supabase
@@ -37,6 +39,7 @@ export async function createAppointment(input: {
       type: input.type ?? "anc_visit",
       location: input.location ?? null,
       notes: input.notes ?? null,
+      meeting_url: input.meetingUrl ?? null,
     })
     .select("id")
     .single();

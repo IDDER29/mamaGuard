@@ -1,8 +1,21 @@
+"use client";
+
+import { useState } from "react";
 import { BookOpen, Apple, Activity, HeartPulse, Stethoscope, ShieldAlert, Baby } from "lucide-react";
-import { WEEKLY_GUIDANCE, KNOWLEDGE_BASE, POSTPARTUM_GUIDANCE, type KnowledgeEntry } from "@/lib/content";
+import {
+  WEEKLY_GUIDANCE,
+  KNOWLEDGE_BASE,
+  POSTPARTUM_GUIDANCE,
+  pickText,
+  type KnowledgeEntry,
+  type Locale,
+} from "@/lib/content";
 
 // Plan 2.3 — clinician reference view of the vetted education library that
 // also grounds Mama AI's replies. Read-only; content lives in lib/content.ts.
+// Plan E2.3 — multilingual: a simple locale toggle renders Darija (default),
+// French, or Modern Standard Arabic. French/Arabic strings are machine-drafted
+// and should get clinician review.
 
 const CATEGORY_META: Record<KnowledgeEntry["category"], { label: string; Icon: typeof Apple; chip: string }> = {
   nutrition: { label: "Nutrition", Icon: Apple, chip: "bg-emerald-50 text-emerald-700" },
@@ -14,18 +27,45 @@ const CATEGORY_META: Record<KnowledgeEntry["category"], { label: string; Icon: t
 
 const TRIMESTER_TINT = ["from-sky-50", "from-violet-50", "from-rose-50"] as const;
 
+const LOCALES: { value: Locale; label: string }[] = [
+  { value: "darija", label: "Darija" },
+  { value: "fr", label: "Français" },
+  { value: "ar", label: "العربية" },
+];
+
 export default function ContentLibraryPage() {
+  const [locale, setLocale] = useState<Locale>("darija");
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100/50 to-white">
       <div className="container mx-auto px-4 sm:px-6 py-6 max-w-[1100px]">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-            <BookOpen className="h-7 w-7 text-primary" />
-            Education Library
-          </h1>
-          <p className="text-sm text-slate-600 mt-1">
-            Vetted Darija guidance that grounds Mama AI&apos;s replies and proactive check-ins.
-          </p>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+              <BookOpen className="h-7 w-7 text-primary" />
+              Education Library
+            </h1>
+            <p className="text-sm text-slate-600 mt-1">
+              Vetted guidance that grounds Mama AI&apos;s replies and proactive check-ins.
+              <span className="block text-[11px] text-slate-400 mt-0.5">
+                French &amp; Arabic are machine-drafted — pending clinician review.
+              </span>
+            </p>
+          </div>
+          <div className="inline-flex rounded-full bg-white p-1 ring-1 ring-slate-200 shadow-sm">
+            {LOCALES.map((l) => (
+              <button
+                key={l.value}
+                type="button"
+                onClick={() => setLocale(l.value)}
+                className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
+                  locale === l.value ? "bg-primary text-white" : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Week-by-week guidance */}
@@ -47,7 +87,7 @@ export default function ContentLibraryPage() {
                 </div>
                 <h3 className="font-semibold text-slate-900 mb-1.5">{g.title}</h3>
                 <p className="text-sm text-slate-700 leading-relaxed" dir="auto">
-                  {g.tip}
+                  {pickText(g.tip, locale)}
                 </p>
               </div>
             ))}
@@ -67,7 +107,7 @@ export default function ContentLibraryPage() {
               >
                 <h3 className="font-semibold text-slate-900 mb-1.5">{g.title}</h3>
                 <p className="text-sm text-slate-700 leading-relaxed" dir="auto">
-                  {g.tip}
+                  {pickText(g.tip, locale)}
                 </p>
               </div>
             ))}
@@ -91,7 +131,7 @@ export default function ContentLibraryPage() {
                     </span>
                   </div>
                   <p className="text-sm text-slate-700 leading-relaxed" dir="auto">
-                    {e.answer}
+                    {pickText(e.answer, locale)}
                   </p>
                   <p className="text-[11px] text-slate-400 mt-2">
                     Triggers: {e.keywords.slice(0, 5).join(", ")}

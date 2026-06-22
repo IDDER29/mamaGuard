@@ -47,6 +47,31 @@ function languageDirective(language?: string): string {
 const FALLBACK_DARIJA =
   "Ana smahiti, ma tqderch t7awl daba. Ila bghiti, 3awed t7awel w goli b 7aloha. Baraka min fadlik tsajli m3a tabiba wla qabla 7ta tqder t7awl m3ahum.";
 
+/** Plan E8.5 — call a fine-tuned, OpenAI-compatible model (e.g. self-hosted Llama). */
+async function callMamaLlama(systemPrompt: string, userPrompt: string): Promise<string> {
+  const base = process.env.MAMALLAMA_BASE_URL!.replace(/\/$/, "");
+  const model = process.env.MAMALLAMA_MODEL ?? "mamallama";
+  const res = await fetch(`${base}/v1/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(process.env.MAMALLAMA_API_KEY ? { Authorization: `Bearer ${process.env.MAMALLAMA_API_KEY}` } : {}),
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.7,
+    }),
+  });
+  if (!res.ok) throw new Error(`MamaLlama error: ${res.status}`);
+  const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  const content = data.choices?.[0]?.message?.content?.trim();
+  return content || FALLBACK_DARIJA;
+}
+
 export type PatientContext = {
   name?: string;
   gestational_week?: number;
@@ -70,7 +95,7 @@ function buildSystemPrompt(patientContext: PatientContext, message: string): str
   const grounding = buildGroundingBlock(
     message,
     typeof gestational_week === "number" ? gestational_week : null,
-    { postpartum: patientContext.postpartum === true },
+    { postpartum: patientContext.postpartum === true, language },
   );
   if (grounding) {
     parts.push(
@@ -199,6 +224,18 @@ export async function generateMamaResponse(
   console.log("[Mama AI] generateMamaResponse called, message length:", message.length, "context keys:", Object.keys(patientContext).join(", ") || "none");
   const systemPrompt = buildSystemPrompt(patientContext, message);
   const userPrompt = buildUserPrompt(message);
+
+  // Plan E8.5 — fine-tuned Darija model ("MamaLlama"). Preferred when configured
+  // (OpenAI-compatible endpoint). Triage urgency stays in lib/triage.ts, so this
+  // only affects the conversational reply — model swaps are safety-bounded.
+  if (process.env.MAMALLAMA_BASE_URL) {
+    try {
+      return await callMamaLlama(systemPrompt, userPrompt);
+    } catch (err) {
+      console.error("[Mama AI] callMamaLlama failed, falling back:", err instanceof Error ? err.message : String(err));
+      // fall through to OpenAI/MiniMax
+    }
+  }
 
   if (process.env.OPENAI_API_KEY) {
     try {

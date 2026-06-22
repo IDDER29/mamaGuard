@@ -14,6 +14,7 @@ export type ConversationLanguage =
 
 export type Intent =
   | { kind: "stop" }
+  | { kind: "start" }
   | { kind: "help" }
   | { kind: "language"; language: ConversationLanguage }
   | { kind: "message" }; // default → triage + LLM
@@ -30,6 +31,7 @@ function normalize(text: string): string {
 }
 
 const STOP_WORDS = ["stop", "unsubscribe", "arret", "w9f", "wqf", "حيد", "وقف", "بلوكي", "كفا"];
+const START_WORDS = ["start", "commencer", "rj3", "rjja3", "بدا", "بغيت نرجع", "رجعني", "كمل"];
 const HELP_WORDS = ["help", "aide", "musa3ada", "mosa3ada", "مساعدة", "?", "؟", "menu"];
 
 const LANGUAGE_WORDS: { match: string[]; language: ConversationLanguage }[] = [
@@ -58,6 +60,7 @@ export function parseIntent(text: string): Intent {
   const n = normalize(text);
   const isShort = n.length <= COMMAND_MAX_LEN;
 
+  if (isShort && START_WORDS.some((w) => hasWord(n, w))) return { kind: "start" };
   if (isShort && STOP_WORDS.some((w) => hasWord(n, w))) return { kind: "stop" };
   if (isShort && HELP_WORDS.some((w) => hasWord(n, w))) return { kind: "help" };
   if (isShort) {
@@ -79,6 +82,10 @@ export function helpMessage(): string {
     "• Bach t-w9fi r-rasa'il: ktbi STOP.\n\n" +
     "⚠️ Ana machi 3iwad 3la tbib. Ila 7assiti b chi 3arad khatir, sir l aqrab sbitar daba."
   );
+}
+
+export function startConfirmMessage(): string {
+  return "Mr7ba bik mn jdid 🧸! Rje3na n-khdmo m3ak. Goli liya kifach 7assa l-youm wla 3andek chi su'al.";
 }
 
 export function stopConfirmMessage(): string {

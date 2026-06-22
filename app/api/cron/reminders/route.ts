@@ -10,6 +10,7 @@ interface DueAppointment {
   id: string;
   scheduled_at: string;
   location: string | null;
+  meeting_url: string | null;
   patients: {
     name: string | null;
     full_name: string | null;
@@ -19,7 +20,12 @@ interface DueAppointment {
   } | null;
 }
 
-function buildReminder(name: string, whenISO: string, location: string | null): string {
+function buildReminder(
+  name: string,
+  whenISO: string,
+  location: string | null,
+  meetingUrl?: string | null,
+): string {
   const d = new Date(whenISO);
   const date = Number.isNaN(d.getTime())
     ? ""
@@ -27,6 +33,9 @@ function buildReminder(name: string, whenISO: string, location: string | null): 
   const time = Number.isNaN(d.getTime())
     ? ""
     : d.toLocaleTimeString("fr-MA", { hour: "2-digit", minute: "2-digit" });
+  if (meetingUrl) {
+    return `Salam ${name}! 🧸 Tdkkir mn 3and Mama AI: 3andek mo9abala 3an bo3d (teleconsult) nhar ${date} f ${time}. Dkhli mn had l-link f l-waqt: ${meetingUrl} 🇲🇦`;
+  }
   const place = location || "l-merkez d sse77a";
   return `Salam ${name}! 🧸 Tdkkir mn 3and Mama AI: 3andek maw3id dyal l-mraqaba (ANC) nhar ${date} f ${time}, f ${place}. 7awli tji f l-waqt 🇲🇦. Ila ma qdertich tji, goli lina bach n-bedlo l-maw3id.`;
 }
@@ -43,7 +52,7 @@ export async function GET(req: Request) {
   const { data: due, error } = await supabase
     .from("appointments")
     .select(
-      "id, scheduled_at, location, patients(name, full_name, phone_number, preferred_channel, consent_given)",
+      "id, scheduled_at, location, meeting_url, patients(name, full_name, phone_number, preferred_channel, consent_given)",
     )
     .in("status", ["scheduled", "confirmed"])
     .is("reminder_sent_at", null)
@@ -68,7 +77,7 @@ export async function GET(req: Request) {
         preferred_channel: p.preferred_channel,
         consent_given: p.consent_given ?? undefined,
       },
-      buildReminder(name, appt.scheduled_at, appt.location),
+      buildReminder(name, appt.scheduled_at, appt.location, appt.meeting_url),
     );
     if (res.success) {
       await supabase
