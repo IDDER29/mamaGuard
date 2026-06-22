@@ -399,7 +399,7 @@ export function SidebarContent({ doctor, onNavigate }: SidebarContentProps) {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/profile" className="cursor-pointer">
+                <Link href="/dashboard/settings" className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Profile & Settings</span>
                 </Link>

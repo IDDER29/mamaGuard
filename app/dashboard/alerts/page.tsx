@@ -70,6 +70,12 @@ export default function AlertsQueuePage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [, setTick] = useState(0); // 30s heartbeat so SLA countdowns advance live
+
+  useEffect(() => {
+    const i = setInterval(() => setTick((t) => t + 1), 30000);
+    return () => clearInterval(i);
+  }, []);
 
   // Resolve the acting clinician at action time (avoids setState-in-effect).
   const getClinicianId = useCallback(async () => {
