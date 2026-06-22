@@ -35,6 +35,7 @@ import { ReferralsCard } from "./components/ReferralsCard";
 import { SymptomTrends } from "@/components/dashboard/SymptomTrends";
 import { REPLY_TEMPLATES } from "@/lib/replyTemplates";
 import { computeRiskScore } from "@/lib/riskScore";
+import { mergePatients } from "@/app/actions/merge";
 import { TrendingUp, UserCheck } from "lucide-react";
 
 export interface MessageRow {
@@ -139,6 +140,19 @@ export function PatientDetailClient({
     const res = await erasePatient(patientId);
     if (res.success) router.push("/dashboard/patients");
     else alert(res.error || "Failed to erase patient");
+  }, [patientId, router]);
+
+  // Plan E6.4 — merge a duplicate record into THIS patient (admin only).
+  const handleMerge = useCallback(async () => {
+    const dupId = window.prompt("Merge a DUPLICATE patient into this one — paste the duplicate's patient ID. The duplicate will be deleted.");
+    if (!dupId || !dupId.trim()) return;
+    const res = await mergePatients(patientId, dupId.trim());
+    if (res.success) {
+      alert("Merged. The duplicate was removed.");
+      router.refresh();
+    } else {
+      alert(res.error || "Failed to merge");
+    }
   }, [patientId, router]);
 
   // Plan E8.2 — transparent predictive risk score (advisory; never overrides triage).
@@ -354,13 +368,22 @@ export function PatientDetailClient({
             {patient.assigned_chw ? "Assigned" : "Assign to me"}
           </button>
           {isAdmin && (
-            <button
-              type="button"
-              onClick={handleErase}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100"
-            >
-              Erase
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleMerge}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 bg-slate-100 text-slate-600 ring-slate-200 hover:bg-slate-200"
+              >
+                Merge
+              </button>
+              <button
+                type="button"
+                onClick={handleErase}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100"
+              >
+                Erase
+              </button>
+            </>
           )}
           {patient.postpartum && (
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 bg-violet-50 text-violet-700 ring-violet-200">

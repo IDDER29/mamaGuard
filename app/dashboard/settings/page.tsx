@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Settings as SettingsIcon, Loader2, Save, ShieldCheck } from "lucide-react";
 import { getCurrentProfile, updateMyProfile, type ClinicianProfile } from "@/app/actions/profiles";
-import { ROLE_LABELS } from "@/lib/roles";
+import { createInvite } from "@/app/actions/invites";
+import { ROLE_LABELS, type Role } from "@/lib/roles";
 import { useToast } from "@/hooks/use-toast";
 
 const LANGS = [
@@ -20,6 +21,11 @@ export default function SettingsPage() {
   const [uiLanguage, setUiLanguage] = useState("en");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Admin invite (Plan E4.2)
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<Role>("clinician");
+  const [inviteLink, setInviteLink] = useState("");
+  const [inviting, setInviting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -38,6 +44,21 @@ export default function SettingsPage() {
   }, []);
 
   const isDemo = profile?.id === "demo";
+  const isAdmin = profile?.role === "admin";
+
+  const handleInvite = async () => {
+    setInviting(true);
+    const res = await createInvite(inviteEmail, inviteRole);
+    setInviting(false);
+    if (res.success) {
+      const link = `${window.location.origin}/dashboard/accept-invite?token=${res.token}`;
+      setInviteLink(link);
+      setInviteEmail("");
+      toast({ title: "Invite created", description: "Share the link with the clinician." });
+    } else {
+      toast({ title: "Couldn't invite", description: res.error, variant: "destructive" });
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -122,6 +143,44 @@ export default function SettingsPage() {
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Save
             </button>
+          </div>
+        )}
+
+        {isAdmin && !isDemo && (
+          <div className="rounded-2xl bg-white ring-1 ring-slate-200/70 shadow-sm p-5 mt-6 space-y-3">
+            <h2 className="text-sm font-semibold text-slate-800">Invite a clinician</h2>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="clinician@example.com"
+                className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/15"
+              />
+              <select
+                value={inviteRole}
+                onChange={(e) => setInviteRole(e.target.value as Role)}
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white outline-none focus:border-primary/50"
+              >
+                {Object.entries(ROLE_LABELS).map(([k, v]) => (
+                  <option key={k} value={k}>{v}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={handleInvite}
+                disabled={inviting || !inviteEmail.trim()}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 text-white text-sm font-medium px-4 py-2 hover:bg-slate-800 disabled:opacity-50"
+              >
+                {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Invite
+              </button>
+            </div>
+            {inviteLink && (
+              <div className="text-xs">
+                <p className="text-slate-500 mb-1">Share this link (the clinician signs in, then opens it):</p>
+                <code className="block break-all rounded-lg bg-slate-50 ring-1 ring-slate-200 px-3 py-2 text-slate-700">{inviteLink}</code>
+              </div>
+            )}
           </div>
         )}
       </div>
