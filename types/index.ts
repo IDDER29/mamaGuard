@@ -46,6 +46,9 @@ export interface Patient {
 
   // Delivery channel (Plan 2.2)
   preferred_channel: "whatsapp" | "sms" | "ussd" | "voice";
+
+  // CHW assignment (Plan 4.1)
+  assigned_chw: string | null;
 }
 
 export interface Alert {

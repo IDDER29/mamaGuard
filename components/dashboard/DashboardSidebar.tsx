@@ -19,6 +19,7 @@ import {
   Circle,
   Siren,
   BookOpen,
+  ClipboardList,
 } from "lucide-react";
 import type { Doctor } from "@/types";
 import { createClient } from "@/utils/supabase/client";
@@ -112,6 +113,11 @@ export function SidebarContent({ doctor, onNavigate }: SidebarContentProps) {
       href: "/dashboard/alerts",
       icon: Siren,
       label: "Triage Queue",
+    },
+    {
+      href: "/dashboard/chw",
+      icon: ClipboardList,
+      label: "Worklist",
     },
     {
       href: "/dashboard/patients",

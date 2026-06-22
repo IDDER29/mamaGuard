@@ -48,6 +48,7 @@ export const mockCriticalPatients: DashboardPatient[] = [
     consent_version: "v1",
     data_retention_until: null,
     preferred_channel: "whatsapp",
+    assigned_chw: null,
     preferred_checkup_time: "morning",
     has_smartphone: true,
     avatarUrl:
@@ -94,6 +95,7 @@ export const mockCriticalPatients: DashboardPatient[] = [
     consent_version: "v1",
     data_retention_until: null,
     preferred_channel: "whatsapp",
+    assigned_chw: null,
     preferred_checkup_time: "afternoon",
     has_smartphone: true,
     avatarUrl:
@@ -143,6 +145,7 @@ export const mockWarningPatients: DashboardPatient[] = [
     consent_version: "v1",
     data_retention_until: null,
     preferred_channel: "whatsapp",
+    assigned_chw: null,
     preferred_checkup_time: "morning",
     has_smartphone: true,
     avatarUrl:
@@ -189,6 +192,7 @@ export const mockWarningPatients: DashboardPatient[] = [
     consent_version: "v1",
     data_retention_until: null,
     preferred_channel: "whatsapp",
+    assigned_chw: null,
     preferred_checkup_time: "afternoon",
     has_smartphone: true,
     avatarUrl:

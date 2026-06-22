@@ -34,12 +34,16 @@ function isLikelyHallucination(text: string): boolean {
   return HALLUCINATION_PATTERNS.some((re) => re.test(trimmed));
 }
 
-async function requestTranscription(audioBuffer: Buffer, apiKey: string): Promise<Response> {
+async function requestTranscription(
+  audioBuffer: Buffer,
+  apiKey: string,
+  language: string,
+): Promise<Response> {
   const formData = new FormData();
   const blob = new Blob([new Uint8Array(audioBuffer)], { type: "audio/ogg" });
   formData.append("file", blob, "audio.ogg");
   formData.append("model", "whisper-1");
-  formData.append("language", "ar"); // Forced Arabic helps with Darija
+  formData.append("language", language); // Forced language helps low-resource dialects
   formData.append("prompt", DARIJA_PROMPT);
   formData.append("temperature", "0");
   formData.append("response_format", "verbose_json"); // gives us no_speech_prob
@@ -51,21 +55,31 @@ async function requestTranscription(audioBuffer: Buffer, apiKey: string): Promis
   });
 }
 
+/** Map a patient language to a Whisper ISO language code (defaults to Arabic). */
+function whisperLang(language?: string): string {
+  const key = (language ?? "").toLowerCase();
+  if (key.startsWith("fr")) return "fr";
+  if (key.startsWith("en")) return "en";
+  return "ar"; // Darija / Arabic / Amazigh transcribe best under Arabic
+}
+
 /**
- * Transcribe a WhatsApp voice note to Darija text. Returns "" on failure or
- * when the audio is silence/noise — callers already treat empty as "ignore".
+ * Transcribe a WhatsApp voice note to text. Returns "" on failure or when the
+ * audio is silence/noise — callers already treat empty as "ignore". Pass the
+ * patient language (Plan 4.5) to route non-Arabic speakers correctly.
  */
-export async function transcribeAudio(audioBuffer: Buffer): Promise<string> {
+export async function transcribeAudio(audioBuffer: Buffer, language?: string): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY?.trim();
   if (!apiKey) {
     console.error("[transcribe] OPENAI_API_KEY is not set");
     return "";
   }
+  const lang = whisperLang(language);
 
   const maxAttempts = 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const response = await requestTranscription(audioBuffer, apiKey);
+      const response = await requestTranscription(audioBuffer, apiKey, lang);
 
       if (!response.ok) {
         const errText = await response.text().catch(() => "");

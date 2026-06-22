@@ -24,6 +24,26 @@ CLINICAL SAFETY (non-negotiable):
 
 Keep responses clear, concise, and supportive.`;
 
+// Plan 4.5 — multilingual routing. The persona defaults to Darija; the patient's
+// `language` selects the reply language end-to-end.
+const LANGUAGE_INSTRUCTION = {
+  darija: "Respond in Moroccan Darija (Latin or Arabic script is fine).",
+  arabic: "Respond in Modern Standard Arabic.",
+  french: "Réponds en français, avec chaleur et clarté.",
+  amazigh: "Respond in Tamazight (Amazigh). Use Latin script if needed.",
+  english: "Respond in English.",
+} as const;
+
+function languageDirective(language?: string): string {
+  const key = (language ?? "").toLowerCase();
+  if (key.startsWith("fr")) return LANGUAGE_INSTRUCTION.french;
+  if (key.startsWith("en")) return LANGUAGE_INSTRUCTION.english;
+  if (key.startsWith("am") || key.startsWith("tzm") || key.includes("tama") || key.includes("amazigh"))
+    return LANGUAGE_INSTRUCTION.amazigh;
+  if (key === "arabic" || key === "msa" || key === "ar") return LANGUAGE_INSTRUCTION.arabic;
+  return LANGUAGE_INSTRUCTION.darija;
+}
+
 const FALLBACK_DARIJA =
   "Ana smahiti, ma tqderch t7awl daba. Ila bghiti, 3awed t7awel w goli b 7aloha. Baraka min fadlik tsajli m3a tabiba wla qabla 7ta tqder t7awl m3ahum.";
 
@@ -33,13 +53,16 @@ export type PatientContext = {
   risk_level?: string;
   doctor_notes?: string;
   chat_history?: string;
+  /** Patient language for reply routing (Plan 4.5). */
+  language?: string;
   [key: string]: string | number | boolean | undefined;
 };
 
 /** Build system instructions including patient context, doctor notes, and conversation history. */
 function buildSystemPrompt(patientContext: PatientContext, message: string): string {
   const { doctor_notes, chat_history, name, risk_level, gestational_week } = patientContext;
-  const parts = [MAMA_SYSTEM_BASE];
+  const language = typeof patientContext.language === "string" ? patientContext.language : undefined;
+  const parts = [MAMA_SYSTEM_BASE, `\nLANGUAGE: ${languageDirective(language)}`];
 
   // Plan 2.3 — ground the reply in the vetted content library (week guidance +
   // matched topics). Prefer this knowledge; never contradict it. Postpartum

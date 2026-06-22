@@ -53,6 +53,7 @@ export function normalizePatient(row: Record<string, unknown>): Patient {
     preferred_channel: ["whatsapp", "sms", "ussd", "voice"].includes(String(row.preferred_channel))
       ? (row.preferred_channel as Patient["preferred_channel"])
       : "whatsapp",
+    assigned_chw: row.assigned_chw != null ? String(row.assigned_chw) : null,
   };
 }
 

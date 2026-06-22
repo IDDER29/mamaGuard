@@ -28,6 +28,8 @@ export async function GET(req: Request) {
     const message = await generateMamaResponse(checkInPrompt, {
       name: patient.name,
       gestational_week: patient.gestational_week,
+      postpartum: Boolean(patient.postpartum),
+      language: patient.language,
     });
 
     // 4. Send via WhatsApp API

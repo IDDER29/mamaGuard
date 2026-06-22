@@ -49,6 +49,7 @@ CREATE TABLE patients (
   -- Delivery channel (Plan 2.2)
   preferred_channel         text NOT NULL DEFAULT 'whatsapp'
                               CHECK (preferred_channel IN ('whatsapp','sms','ussd','voice')),
+  assigned_chw              uuid,   -- community health worker (Plan 4.1)
   preferred_checkup_time    time,
   voice_reporting_frequency text,
   language                  text DEFAULT 'darija',
@@ -120,6 +121,34 @@ CREATE TABLE appointments (
   updated_at       timestamptz NOT NULL DEFAULT now()
 );
 
+-- 9. FACILITIES (referral directory, Plan 4.4)
+CREATE TABLE facilities (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name       text NOT NULL,
+  type       text,
+  region     text,
+  city       text,
+  phone      text,
+  latitude   double precision,
+  longitude  double precision,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- 10. REFERRALS (escalation loop from alert -> facility, Plan 4.4)
+CREATE TABLE referrals (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id     uuid NOT NULL REFERENCES patients (id) ON DELETE CASCADE,
+  alert_id       uuid REFERENCES alerts (id) ON DELETE SET NULL,
+  facility_id    uuid REFERENCES facilities (id) ON DELETE SET NULL,
+  status         text NOT NULL DEFAULT 'created'
+                   CHECK (status IN ('created','en_route','arrived','completed','cancelled')),
+  reason         text,
+  transport_note text,
+  created_by     uuid,
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  updated_at     timestamptz NOT NULL DEFAULT now()
+);
+
 -- 7. EPDS SCREENINGS (Edinburgh Postnatal Depression Scale, Phase 3)
 CREATE TABLE epds_screenings (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -159,6 +188,9 @@ CREATE INDEX idx_appointments_patient ON appointments (patient_id);
 CREATE INDEX idx_appointments_due ON appointments (scheduled_at) WHERE status IN ('scheduled','confirmed');
 CREATE INDEX idx_epds_patient ON epds_screenings (patient_id, created_at DESC);
 CREATE INDEX idx_vitals_patient ON vitals (patient_id, recorded_at DESC);
+CREATE INDEX idx_facilities_region ON facilities (region);
+CREATE INDEX idx_referrals_patient ON referrals (patient_id);
+CREATE INDEX idx_referrals_status ON referrals (status);
 
 -- Keep updated_at fresh on patients
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -184,6 +216,8 @@ ALTER TABLE audit_log     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE appointments  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE epds_screenings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vitals        ENABLE ROW LEVEL SECURITY;
+ALTER TABLE facilities    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE referrals     ENABLE ROW LEVEL SECURITY;
 
 -- Authenticated clinicians: full access to clinical data.
 CREATE POLICY "authenticated full access" ON patients
@@ -199,6 +233,10 @@ CREATE POLICY "authenticated full access" ON appointments
 CREATE POLICY "authenticated full access" ON epds_screenings
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated full access" ON vitals
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated full access" ON facilities
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated full access" ON referrals
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 -- Audit log: clinicians may read; only the service role writes (immutability).
 CREATE POLICY "authenticated read audit" ON audit_log

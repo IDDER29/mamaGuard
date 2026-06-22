@@ -205,6 +205,7 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
       risk_level: triage.urgency,
       gestational_week: currentPatient.gestational_week,
       postpartum: Boolean(currentPatient.postpartum),
+      language: currentPatient.language,
       chat_history: historyString,
     });
 

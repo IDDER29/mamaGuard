@@ -11,9 +11,11 @@ import {
   Phone,
   RefreshCw,
   Inbox,
+  Ambulance,
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { acknowledgeAlert, resolveAlert } from "@/app/actions/alerts";
+import { createReferral } from "@/app/actions/referrals";
 import { useToast } from "@/hooks/use-toast";
 
 interface AlertRow {
@@ -110,6 +112,19 @@ export default function AlertsQueuePage() {
     if (!res.success) return toast({ title: "Failed", description: res.error, variant: "destructive" });
     toast({ title: "Acknowledged", description: "Alert assigned to you." });
     fetchAlerts();
+  };
+
+  const onRefer = async (a: AlertRow) => {
+    setBusyId(a.id);
+    const res = await createReferral({
+      patientId: a.patient_id,
+      alertId: a.id,
+      reason: a.symptom_name || `${a.urgency} danger sign`,
+      createdBy: await getClinicianId(),
+    });
+    setBusyId(null);
+    if (!res.success) return toast({ title: "Failed", description: res.error, variant: "destructive" });
+    toast({ title: "Referral created", description: "Tracked referral opened for this patient." });
   };
 
   const onResolve = async (a: AlertRow) => {
@@ -226,6 +241,13 @@ export default function AlertsQueuePage() {
                         <Check className="h-4 w-4" /> Acknowledge
                       </button>
                     )}
+                    <button
+                      onClick={() => onRefer(a)}
+                      disabled={busyId === a.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-50 text-rose-700 text-sm font-medium hover:bg-rose-100 disabled:opacity-50"
+                    >
+                      <Ambulance className="h-4 w-4" /> Refer
+                    </button>
                     <button
                       onClick={() => onResolve(a)}
                       disabled={busyId === a.id}
