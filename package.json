@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:triage": "node --experimental-strip-types --test lib/triage.vignettes.mjs",
-    "test:safety": "node --experimental-strip-types eval/triage-safety.mjs"
+    "test:safety": "node --experimental-strip-types eval/triage-safety.mjs",
+    "test:conversation": "node --experimental-strip-types --test lib/conversation.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

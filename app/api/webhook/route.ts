@@ -4,6 +4,12 @@ import { generateMamaResponse } from "@/lib/generateMamaResponse";
 import { assessTriage } from "@/lib/triage";
 import { transcribeAudio } from "@/lib/transcribe";
 import { generateSpeech } from "@/lib/speak";
+import {
+  parseIntent,
+  helpMessage,
+  stopConfirmMessage,
+  languageConfirmMessage,
+} from "@/lib/conversation";
 
 interface WhatsAppMessage {
   from: string;
@@ -167,6 +173,50 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
         .insert({ patient_id: currentPatient.id })
         .select().single();
       conv = newC;
+    }
+
+    // --- 2b. COMMAND INTENTS (STOP / HELP / language) — Plan E2.1/E2.2/E6.1 ---
+    // Short command messages are handled before triage. Long messages that merely
+    // contain a command word fall through to triage (safety).
+    {
+      const intent = parseIntent(userText);
+      if (intent.kind !== "message") {
+        const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
+        const token = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
+        const reply = async (body: string) => {
+          if (!phoneId || !token) return;
+          await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              messaging_product: "whatsapp",
+              to: senderPhone,
+              type: "text",
+              text: { body },
+            }),
+          });
+        };
+        if (intent.kind === "stop") {
+          await supabase
+            .from("patients")
+            .update({ consent_given: false, updated_at: new Date().toISOString() })
+            .eq("id", currentPatient.id);
+          await reply(stopConfirmMessage());
+          return;
+        }
+        if (intent.kind === "help") {
+          await reply(helpMessage());
+          return;
+        }
+        if (intent.kind === "language") {
+          await supabase
+            .from("patients")
+            .update({ language: intent.language, updated_at: new Date().toISOString() })
+            .eq("id", currentPatient.id);
+          await reply(languageConfirmMessage(intent.language));
+          return;
+        }
+      }
     }
 
     // --- 3. RISK ANALYSIS & DB SAVE (AS PATIENT/USER) ---
