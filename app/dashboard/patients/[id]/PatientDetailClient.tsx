@@ -33,6 +33,7 @@ import { EpdsCard } from "./components/EpdsCard";
 import { VitalsCard } from "./components/VitalsCard";
 import { ReferralsCard } from "./components/ReferralsCard";
 import { SymptomTrends } from "@/components/dashboard/SymptomTrends";
+import { REPLY_TEMPLATES } from "@/lib/replyTemplates";
 import { TrendingUp, UserCheck } from "lucide-react";
 
 export interface MessageRow {
@@ -555,7 +556,21 @@ export function PatientDetailClient({
             </div>
 
             {conversationId && (
-              <div className="p-3 border-t border-slate-100 flex gap-2 bg-white">
+              <div className="border-t border-slate-100 bg-white">
+                <div className="flex gap-1.5 overflow-x-auto px-3 pt-2.5 pb-0.5">
+                  {REPLY_TEMPLATES.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setInputValue(t.body)}
+                      title={t.body}
+                      className="shrink-0 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary/40 transition-colors"
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="p-3 flex gap-2">
                 <input
                   type="text"
                   value={inputValue}
@@ -577,6 +592,7 @@ export function PatientDetailClient({
                   )}
                   <span className="hidden sm:inline">Send</span>
                 </button>
+                </div>
               </div>
             )}
           </section>

@@ -104,7 +104,30 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
       userText = messageObj.text?.body ?? "";
     }
 
-    if (!userText.trim()) return;
+    if (!userText.trim()) {
+      // Plan E1.3 — never silently drop a failed voice note. Ask the mother to
+      // resend (text or clearer audio) and flag urgency-conservatively in copy.
+      if (isAudio) {
+        const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
+        const token = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
+        if (phoneId && token) {
+          await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              messaging_product: "whatsapp",
+              to: senderPhone,
+              type: "text",
+              text: {
+                body:
+                  "Sme7 liya 🎙️ ma fhemtch l-message dyalek b s-sout mzyan. 3afak 3awd sift-u b chwiya o b wodo7, wla ktbha liya. Ila 7essiti b chi 7aja musta3jala (bhal nazif, wja3 qwi...), sir l aqrab sbitar daba.",
+              },
+            }),
+          });
+        }
+      }
+      return;
+    }
 
     // --- 2. DEDUPLICATION & PATIENT FETCH ---
     const { data: existingMsg } = await supabase
@@ -190,12 +213,25 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
     // Trigger an alert for any non-low urgency. high/critical = act-now queue
     // (SLA); medium = "needs review" bucket (human-in-the-loop on ambiguity).
     if (triage.urgency !== "low") {
+      const signLabel = triage.signs.map((s) => s.label).join(", ") || triage.symptom;
       await supabase.from("alerts").insert({
         patient_id: currentPatient.id,
         message_id: savedPatientMsg!.id,
         urgency: triage.urgency,
-        symptom_name: triage.signs.map((s) => s.label).join(", ") || triage.symptom,
+        symptom_name: signLabel,
       });
+
+      // Notify clinicians for act-now urgencies (Plan E1.1).
+      if (triage.urgency === "high" || triage.urgency === "critical") {
+        const who = currentPatient.full_name || currentPatient.name || "A patient";
+        await supabase.from("notifications").insert({
+          type: triage.urgency === "critical" ? "alert_critical" : "alert_high",
+          title: `${triage.urgency === "critical" ? "🚨 Critical" : "⚠️ High"} alert — ${who}`,
+          body: signLabel || "Danger sign detected",
+          entity_type: "alert",
+          patient_id: currentPatient.id,
+        });
+      }
     }
 
     // Appointment confirm / cancel intent from the patient's reply (Plan 2.1).

@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Doctor, DashboardStats } from "@/types";
 import DashboardSidebar from "./DashboardSidebar";
 import DashboardSidebarMobile from "./DashboardSidebarMobile";
-import DashboardHeader from "./DashboardHeader";
+import DashboardHeader, { type Notification } from "./DashboardHeader";
+import { createClient } from "@/utils/supabase/client";
+import {
+  listNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  type NotificationRow,
+} from "@/app/actions/notifications";
 
 interface DashboardChromeProps {
   doctor: Doctor;
@@ -12,13 +19,33 @@ interface DashboardChromeProps {
   children: React.ReactNode;
 }
 
+function relativeTime(iso: string): string {
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const h = Math.round(mins / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.round(h / 24)}d ago`;
+}
+
+function toHeaderNotification(n: NotificationRow): Notification {
+  return {
+    id: n.id,
+    title: n.title,
+    message: n.body ?? "",
+    time: relativeTime(n.created_at),
+    type: n.type === "alert_critical" || n.type === "sla_breach" ? "critical" : "warning",
+    read: n.read_at != null,
+    patientId: n.patient_id ?? undefined,
+  };
+}
+
 /**
- * Client shell for the dashboard. Owns the mobile-drawer open state and lays out
- * the responsive sidebar + header + scroll region.
+ * Client shell for the dashboard. Owns the mobile-drawer state and feeds the
+ * header live clinician notifications (Plan E1.1) via the admin-backed actions,
+ * refreshed on any `notifications` table change.
  *
- * The whole subtree is pinned to the `light` theme: the clinical UI is designed
- * as a bright, high-contrast surface and does not have dark-mode styling, so the
- * marketing theme toggle must not bleed in here.
+ * Pinned to the `light` theme: the clinical UI is a bright, high-contrast surface.
  */
 export default function DashboardChrome({
   doctor,
@@ -26,6 +53,41 @@ export default function DashboardChrome({
   children,
 }: DashboardChromeProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const refresh = useCallback(async () => {
+    const rows = await listNotifications();
+    setNotifications(rows.map(toHeaderNotification));
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const supabase = createClient();
+    (async () => {
+      const rows = await listNotifications();
+      if (active) setNotifications(rows.map(toHeaderNotification));
+    })();
+    const channel = supabase
+      .channel("notifications-feed")
+      .on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, () => {
+        void refresh();
+      })
+      .subscribe();
+    return () => {
+      active = false;
+      supabase.removeChannel(channel);
+    };
+  }, [refresh]);
+
+  const onMarkAsRead = useCallback((id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    void markNotificationRead(id);
+  }, []);
+
+  const onMarkAllAsRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    void markAllNotificationsRead();
+  }, []);
 
   return (
     <div className="light h-screen flex bg-background text-foreground overflow-hidden">
@@ -39,6 +101,12 @@ export default function DashboardChrome({
       <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         <DashboardHeader
           stats={stats}
+          notifications={notifications}
+          onRefresh={refresh}
+          onMarkAsRead={onMarkAsRead}
+          onMarkAllAsRead={onMarkAllAsRead}
+          onDismissNotification={onMarkAsRead}
+          enableNotificationSound
           onOpenSidebar={() => setMobileNavOpen(true)}
         />
         <div className="flex-1 overflow-y-auto bg-slate-50/50">{children}</div>

@@ -26,6 +26,7 @@ interface AlertRow {
   status: "active" | "acknowledged" | "resolved";
   symptom_name: string | null;
   created_at: string;
+  escalation_level?: number;
   patients?: { full_name: string | null; name: string | null; phone_number: string | null } | null;
 }
 
@@ -173,6 +174,11 @@ export default function AlertsQueuePage() {
               {sla && (
                 <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${sla.cls}`}>
                   {sla.text}
+                </span>
+              )}
+              {(a.escalation_level ?? 0) > 0 && (
+                <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-rose-600 text-white">
+                  escalated
                 </span>
               )}
             </div>

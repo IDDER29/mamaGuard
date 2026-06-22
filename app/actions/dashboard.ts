@@ -24,6 +24,7 @@ export interface DashboardAlert {
   status: "active" | "acknowledged" | "resolved";
   symptom_name: string | null;
   created_at: string;
+  escalation_level: number;
   patients: JoinedPatient | null;
 }
 
@@ -39,7 +40,7 @@ export async function listActiveAlerts(): Promise<DashboardAlert[]> {
   const supabase = await createAdminClient();
   const { data, error } = await supabase
     .from("alerts")
-    .select("id, patient_id, urgency, status, symptom_name, created_at, patients(full_name, name, phone_number, assigned_chw)")
+    .select("id, patient_id, urgency, status, symptom_name, created_at, escalation_level, patients(full_name, name, phone_number, assigned_chw)")
     .in("status", ["active", "acknowledged"])
     .order("created_at", { ascending: false });
   if (error) {
@@ -58,7 +59,7 @@ export async function listWorklist(): Promise<{
   const [alertsRes, visitsRes] = await Promise.all([
     supabase
       .from("alerts")
-      .select("id, patient_id, urgency, status, symptom_name, created_at, patients(full_name, name, phone_number, assigned_chw)")
+      .select("id, patient_id, urgency, status, symptom_name, created_at, escalation_level, patients(full_name, name, phone_number, assigned_chw)")
       .in("status", ["active", "acknowledged"])
       .order("created_at", { ascending: false }),
     supabase

@@ -91,6 +91,9 @@ CREATE TABLE alerts (
   resolved_at     timestamptz,
   resolved_by     uuid,
   doctor_notes    text,
+  sla_warned      boolean NOT NULL DEFAULT false,   -- SLA warning sent (Plan E1.2)
+  escalated_at    timestamptz,
+  escalation_level int NOT NULL DEFAULT 0,
   created_at      timestamptz NOT NULL DEFAULT now()
 );
 
@@ -149,6 +152,20 @@ CREATE TABLE referrals (
   updated_at     timestamptz NOT NULL DEFAULT now()
 );
 
+-- 11. NOTIFICATIONS (clinician alerts / SLA, Plan E1)
+CREATE TABLE notifications (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  recipient   uuid,                       -- null = broadcast to all clinicians
+  type        text NOT NULL,              -- alert_critical|alert_high|sla_warning|sla_breach|system
+  title       text NOT NULL,
+  body        text,
+  entity_type text,
+  entity_id   uuid,
+  patient_id  uuid REFERENCES patients (id) ON DELETE CASCADE,
+  read_at     timestamptz,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
 -- 7. EPDS SCREENINGS (Edinburgh Postnatal Depression Scale, Phase 3)
 CREATE TABLE epds_screenings (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -191,6 +208,8 @@ CREATE INDEX idx_vitals_patient ON vitals (patient_id, recorded_at DESC);
 CREATE INDEX idx_facilities_region ON facilities (region);
 CREATE INDEX idx_referrals_patient ON referrals (patient_id);
 CREATE INDEX idx_referrals_status ON referrals (status);
+CREATE INDEX idx_notifications_recipient ON notifications (recipient, read_at);
+CREATE INDEX idx_notifications_created ON notifications (created_at DESC);
 
 -- Keep updated_at fresh on patients
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -218,6 +237,7 @@ ALTER TABLE epds_screenings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vitals        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE facilities    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referrals     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications  ENABLE ROW LEVEL SECURITY;
 
 -- Authenticated clinicians: full access to clinical data.
 CREATE POLICY "authenticated full access" ON patients
@@ -237,6 +257,8 @@ CREATE POLICY "authenticated full access" ON vitals
 CREATE POLICY "authenticated full access" ON facilities
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated full access" ON referrals
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated full access" ON notifications
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 -- Audit log: clinicians may read; only the service role writes (immutability).
 CREATE POLICY "authenticated read audit" ON audit_log
