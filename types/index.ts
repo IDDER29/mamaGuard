@@ -33,6 +33,10 @@ export interface Patient {
   partner_opt_in: boolean;
   preferred_checkup_time: string | null;
   has_smartphone: boolean;
+
+  // Postpartum (Phase 3)
+  postpartum: boolean;
+  delivery_date: string | null;
 }
 
 export interface Alert {

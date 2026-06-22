@@ -42,10 +42,12 @@ function buildSystemPrompt(patientContext: PatientContext, message: string): str
   const parts = [MAMA_SYSTEM_BASE];
 
   // Plan 2.3 — ground the reply in the vetted content library (week guidance +
-  // matched topics). Prefer this knowledge; never contradict it.
+  // matched topics). Prefer this knowledge; never contradict it. Postpartum
+  // mode (Phase 3) swaps gestational guidance for postpartum guidance.
   const grounding = buildGroundingBlock(
     message,
     typeof gestational_week === "number" ? gestational_week : null,
+    { postpartum: patientContext.postpartum === true },
   );
   if (grounding) {
     parts.push(

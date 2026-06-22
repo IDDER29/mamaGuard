@@ -39,6 +39,8 @@ CREATE TABLE patients (
   spouse_partner_name       text,
   spouse_partner_phone      text,
   partner_opt_in            boolean NOT NULL DEFAULT false,
+  postpartum                boolean NOT NULL DEFAULT false,
+  delivery_date             date,
   preferred_checkup_time    time,
   voice_reporting_frequency text,
   language                  text DEFAULT 'darija',
@@ -110,6 +112,34 @@ CREATE TABLE appointments (
   updated_at       timestamptz NOT NULL DEFAULT now()
 );
 
+-- 7. EPDS SCREENINGS (Edinburgh Postnatal Depression Scale, Phase 3)
+CREATE TABLE epds_screenings (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id      uuid NOT NULL REFERENCES patients (id) ON DELETE CASCADE,
+  answers         jsonb NOT NULL,      -- array of 10 ints 0-3
+  total_score     int NOT NULL,
+  q10_score       int NOT NULL,        -- self-harm item, denormalized for flagging
+  risk_flag       boolean NOT NULL DEFAULT false,
+  administered_by uuid,
+  notes           text,
+  created_at      timestamptz NOT NULL DEFAULT now()
+);
+
+-- 8. VITALS (blood pressure + other vitals over time, Phase 3)
+CREATE TABLE vitals (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id  uuid NOT NULL REFERENCES patients (id) ON DELETE CASCADE,
+  recorded_at timestamptz NOT NULL DEFAULT now(),
+  systolic    int,
+  diastolic   int,
+  heart_rate  int,
+  temperature numeric(4,1),
+  weight_kg   numeric(5,2),
+  notes       text,
+  recorded_by uuid,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+
 -- Indexing for performance
 CREATE INDEX idx_messages_conv ON messages (conversation_id);
 CREATE INDEX idx_alerts_status ON alerts (status) WHERE status = 'active';
@@ -119,6 +149,8 @@ CREATE INDEX idx_audit_patient ON audit_log (patient_id);
 CREATE INDEX idx_audit_entity ON audit_log (entity_type, entity_id);
 CREATE INDEX idx_appointments_patient ON appointments (patient_id);
 CREATE INDEX idx_appointments_due ON appointments (scheduled_at) WHERE status IN ('scheduled','confirmed');
+CREATE INDEX idx_epds_patient ON epds_screenings (patient_id, created_at DESC);
+CREATE INDEX idx_vitals_patient ON vitals (patient_id, recorded_at DESC);
 
 -- Keep updated_at fresh on patients
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -142,6 +174,8 @@ ALTER TABLE messages      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alerts        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_log     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE appointments  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE epds_screenings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vitals        ENABLE ROW LEVEL SECURITY;
 
 -- Authenticated clinicians: full access to clinical data.
 CREATE POLICY "authenticated full access" ON patients
@@ -153,6 +187,10 @@ CREATE POLICY "authenticated full access" ON messages
 CREATE POLICY "authenticated full access" ON alerts
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "authenticated full access" ON appointments
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated full access" ON epds_screenings
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "authenticated full access" ON vitals
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 -- Audit log: clinicians may read; only the service role writes (immutability).
 CREATE POLICY "authenticated read audit" ON audit_log

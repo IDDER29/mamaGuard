@@ -43,6 +43,8 @@ export function normalizePatient(row: Record<string, unknown>): Patient {
     preferred_checkup_time:
       row.preferred_checkup_time != null ? String(row.preferred_checkup_time) : null,
     has_smartphone: Boolean(row.has_smartphone),
+    postpartum: Boolean(row.postpartum),
+    delivery_date: row.delivery_date != null ? String(row.delivery_date) : null,
   };
 }
 

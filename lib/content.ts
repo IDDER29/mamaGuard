@@ -52,6 +52,33 @@ export function getWeeklyGuidance(week: number | null | undefined): WeeklyGuidan
   return WEEKLY_GUIDANCE.find((g) => week >= g.weeks[0] && week <= g.weeks[1]) ?? null;
 }
 
+// --- Postpartum guidance (Phase 3) ---------------------------------------
+
+export interface PostpartumGuidance {
+  title: string;
+  tip: string;
+}
+
+export const POSTPARTUM_GUIDANCE: PostpartumGuidance[] = [
+  {
+    title: "Ra7tk b3d l-wlada",
+    tip: "Mbrouk 3la l-bebe! 🍼 Hadi merhala dyal l-tafaqi. R-ta7i waqt ma t-qderi, kouli mlih w chrbi l-ma bzaf, w khelli chi 7ed y3awnek f d-dar.",
+  },
+  {
+    title: "3alamat l-khatar b3d l-wlada",
+    tip: "Sir l sbitar daba ila: nzif bzaf (kat3emri serviette f aqal mn sa3a), sxana, riha khayba mn l-ifrazat, wla wja3 qwi. Hadou 3alamat khatira khassek tchoufi tbiba.",
+  },
+  {
+    title: "S-saht n-nafsiya",
+    tip: "Ila 7ssiti b 7ozn dayem, kat-bki bzaf, wla ma 3andekch far7a m3a l-bebe — hada momkin ykoun depression d b3d l-wlada. Machi 3iben, w kayn 3ilaj. Hdri m3a tbiba.",
+  },
+];
+
+export function getPostpartumGuidance(): PostpartumGuidance {
+  // Lead with the safety block — it's the highest-value reminder postpartum.
+  return POSTPARTUM_GUIDANCE[1];
+}
+
 // --- Topical knowledge base ----------------------------------------------
 
 export const KNOWLEDGE_BASE: KnowledgeEntry[] = [
@@ -111,6 +138,20 @@ export const KNOWLEDGE_BASE: KnowledgeEntry[] = [
     answer:
       "L-m3anat n-nafsiya f l-7aml machi 3iben — bzaf d l-3yalat kayhssou b l-qlq wla l-7zn. Hdri m3a chi 7ed kat-tiq fih, w ila l-7ssas bqa mddat twila goli l-tabiba bach t3awnk.",
   },
+  {
+    id: "postpartum-bleeding",
+    category: "safety",
+    keywords: ["nzif b3d", "dem b3d l-wlada", "lochies", "ifrazat", "saignement apres"],
+    answer:
+      "N-nzif l-khafif b3d l-wlada 3adi w kayn7l m3a l-iyyam. Walakin ila kan bzaf (kat3emri serviette f aqal mn sa3a) wla fih riha khayba wla sxana — sir l sbitar daba.",
+  },
+  {
+    id: "newborn-care",
+    category: "care",
+    keywords: ["bebe", "rdde3", "noni d l-bebe", "sorra", "nouveau ne", "newborn"],
+    answer:
+      "Rdde3i l-bebe kol ma 7taj (8-12 mrra f nhar). 7afdi 3la d-dafa dyalou w nadafat s-sorra. Ila l-bebe ma kayrdde3ch, kaybqa b7al l-asfar, wla 3andou sxana — chouf t-tbiba.",
+  },
 ];
 
 // --- Matching + grounding -------------------------------------------------
@@ -140,10 +181,16 @@ export function findKnowledge(message: string, limit = 2): KnowledgeEntry[] {
 export function buildGroundingBlock(
   message: string,
   week: number | null | undefined,
+  opts?: { postpartum?: boolean },
 ): string {
   const lines: string[] = [];
-  const guidance = getWeeklyGuidance(week);
-  if (guidance) lines.push(`- (${guidance.title}) ${guidance.tip}`);
+  if (opts?.postpartum) {
+    const pp = getPostpartumGuidance();
+    lines.push(`- (${pp.title}) ${pp.tip}`);
+  } else {
+    const guidance = getWeeklyGuidance(week);
+    if (guidance) lines.push(`- (${guidance.title}) ${guidance.tip}`);
+  }
   for (const entry of findKnowledge(message)) lines.push(`- ${entry.answer}`);
   return lines.join("\n");
 }

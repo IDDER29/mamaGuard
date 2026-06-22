@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { normalizePatient } from "@/lib/patients";
 import { listAppointments } from "@/app/actions/appointments";
+import { listEpdsScreenings } from "@/app/actions/epds";
+import { listVitals } from "@/app/actions/vitals";
 import { PatientDetailClient } from "./PatientDetailClient";
 
 export interface ConversationRow {
@@ -73,8 +75,13 @@ export default async function PatientDetailPage({ params }: PageProps) {
 
   const conversationId = conversation?.id ?? null;
 
-  // Plan 2.1 — upcoming/visit appointments (empty if the table isn't migrated yet).
-  const appointments = await listAppointments(id);
+  // Plan 2.1 / Phase 3 — appointments, EPDS screenings, vitals.
+  // Each returns [] if the table isn't migrated yet (defensive).
+  const [appointments, epds, vitals] = await Promise.all([
+    listAppointments(id),
+    listEpdsScreenings(id),
+    listVitals(id),
+  ]);
 
   return (
     <PatientDetailClient
@@ -83,6 +90,8 @@ export default async function PatientDetailPage({ params }: PageProps) {
       conversationId={conversationId}
       initialMessages={messages}
       initialAppointments={appointments}
+      initialEpds={epds}
+      initialVitals={vitals}
     />
   );
 }

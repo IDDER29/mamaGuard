@@ -41,6 +41,8 @@ export const mockCriticalPatients: DashboardPatient[] = [
     spouse_partner_name: null,
     spouse_partner_phone: null,
     partner_opt_in: false,
+    postpartum: false,
+    delivery_date: null,
     preferred_checkup_time: "morning",
     has_smartphone: true,
     avatarUrl:
@@ -80,6 +82,8 @@ export const mockCriticalPatients: DashboardPatient[] = [
     spouse_partner_name: null,
     spouse_partner_phone: null,
     partner_opt_in: false,
+    postpartum: false,
+    delivery_date: null,
     preferred_checkup_time: "afternoon",
     has_smartphone: true,
     avatarUrl:
@@ -122,6 +126,8 @@ export const mockWarningPatients: DashboardPatient[] = [
     spouse_partner_name: null,
     spouse_partner_phone: null,
     partner_opt_in: false,
+    postpartum: false,
+    delivery_date: null,
     preferred_checkup_time: "morning",
     has_smartphone: true,
     avatarUrl:
@@ -161,6 +167,8 @@ export const mockWarningPatients: DashboardPatient[] = [
     spouse_partner_name: null,
     spouse_partner_phone: null,
     partner_opt_in: false,
+    postpartum: false,
+    delivery_date: null,
     preferred_checkup_time: "afternoon",
     has_smartphone: true,
     avatarUrl:

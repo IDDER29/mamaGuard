@@ -107,7 +107,10 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
 
     // --- 3. RISK ANALYSIS & DB SAVE (AS PATIENT/USER) ---
     // Validated, deterministic, conservative triage (WHO ANC DAK — Plan 1.1).
-    const triage = assessTriage(userText);
+    // Postpartum patients (Phase 3) also get postpartum-specific danger signs.
+    const triage = assessTriage(userText, {
+      postpartum: Boolean(currentPatient.postpartum),
+    });
 
     // Save the Patient's message (The "User" role). Persist the full triage
     // assessment for auditability (version, matched signs, escalation).
@@ -201,6 +204,7 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
       name: currentPatient.full_name || currentPatient.name,
       risk_level: triage.urgency,
       gestational_week: currentPatient.gestational_week,
+      postpartum: Boolean(currentPatient.postpartum),
       chat_history: historyString,
     });
 

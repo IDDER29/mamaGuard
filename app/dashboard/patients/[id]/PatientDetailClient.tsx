@@ -24,6 +24,11 @@ import {
   createAppointment,
   type AppointmentRow,
 } from "@/app/actions/appointments";
+import type { EpdsScreeningRow } from "@/app/actions/epds";
+import type { VitalRow } from "@/app/actions/vitals";
+import { PostpartumCard } from "./components/PostpartumCard";
+import { EpdsCard } from "./components/EpdsCard";
+import { VitalsCard } from "./components/VitalsCard";
 
 export interface MessageRow {
   id: string;
@@ -40,6 +45,8 @@ interface PatientDetailClientProps {
   conversationId: string | null;
   initialMessages: MessageRow[]; // Assumed to be sorted ASC (oldest first) from server
   initialAppointments?: AppointmentRow[];
+  initialEpds?: EpdsScreeningRow[];
+  initialVitals?: VitalRow[];
 }
 
 const RISK_BADGE: Record<string, string> = {
@@ -77,6 +84,8 @@ export function PatientDetailClient({
   conversationId,
   initialMessages,
   initialAppointments = [],
+  initialEpds = [],
+  initialVitals = [],
 }: PatientDetailClientProps) {
   const router = useRouter();
   const [patient, setPatient] = useState<Patient>(initialPatient);
@@ -275,11 +284,18 @@ export function PatientDetailClient({
             </div>
           </div>
         </div>
-        <span
-          className={`hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 ${RISK_BADGE[riskKey] ?? RISK_BADGE.low}`}
-        >
-          {riskKey} risk
-        </span>
+        <div className="hidden sm:flex items-center gap-2">
+          {patient.postpartum && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 bg-violet-50 text-violet-700 ring-violet-200">
+              Postpartum
+            </span>
+          )}
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 ${RISK_BADGE[riskKey] ?? RISK_BADGE.low}`}
+          >
+            {riskKey} risk
+          </span>
+        </div>
       </header>
 
       <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 overflow-y-auto lg:overflow-hidden max-w-7xl mx-auto w-full">
@@ -429,6 +445,15 @@ export function PatientDetailClient({
               </button>
             </div>
           </section>
+
+          {/* Postpartum / EPDS / Vitals (Phase 3) */}
+          <PostpartumCard
+            patientId={patientId}
+            postpartum={patient.postpartum}
+            deliveryDate={patient.delivery_date}
+          />
+          <VitalsCard patientId={patientId} vitals={initialVitals} />
+          <EpdsCard patientId={patientId} screenings={initialEpds} />
         </aside>
 
         {/* Center: Daily summary + Chat */}

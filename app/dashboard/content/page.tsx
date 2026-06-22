@@ -1,5 +1,5 @@
-import { BookOpen, Apple, Activity, HeartPulse, Stethoscope, ShieldAlert } from "lucide-react";
-import { WEEKLY_GUIDANCE, KNOWLEDGE_BASE, type KnowledgeEntry } from "@/lib/content";
+import { BookOpen, Apple, Activity, HeartPulse, Stethoscope, ShieldAlert, Baby } from "lucide-react";
+import { WEEKLY_GUIDANCE, KNOWLEDGE_BASE, POSTPARTUM_GUIDANCE, type KnowledgeEntry } from "@/lib/content";
 
 // Plan 2.3 — clinician reference view of the vetted education library that
 // also grounds Mama AI's replies. Read-only; content lives in lib/content.ts.
@@ -45,6 +45,26 @@ export default function ContentLibraryPage() {
                   </span>
                   <span className="text-[10px] font-semibold text-slate-500">T{g.trimester}</span>
                 </div>
+                <h3 className="font-semibold text-slate-900 mb-1.5">{g.title}</h3>
+                <p className="text-sm text-slate-700 leading-relaxed" dir="auto">
+                  {g.tip}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Postpartum guidance (Phase 3) */}
+        <section className="mb-8">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-2">
+            <Baby className="h-4 w-4" /> Postpartum guidance
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {POSTPARTUM_GUIDANCE.map((g) => (
+              <div
+                key={g.title}
+                className="rounded-2xl bg-gradient-to-b from-violet-50 to-white p-5 ring-1 ring-slate-200/70 shadow-sm"
+              >
                 <h3 className="font-semibold text-slate-900 mb-1.5">{g.title}</h3>
                 <p className="text-sm text-slate-700 leading-relaxed" dir="auto">
                   {g.tip}

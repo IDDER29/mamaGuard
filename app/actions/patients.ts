@@ -208,3 +208,24 @@ export async function updatePartnerInfo(
   }
   return { success: true };
 }
+
+// Phase 3 — postpartum mode. Flips the patient to postpartum so triage uses
+// postpartum danger signs and the assistant uses postpartum guidance.
+export async function setPostpartumStatus(
+  patientId: string,
+  fields: { postpartum: boolean; delivery_date?: string | null }
+): Promise<{ success: true } | { success: false; error: string }> {
+  const supabase = await createAdminClient();
+  const payload: Record<string, unknown> = {
+    postpartum: fields.postpartum,
+    updated_at: new Date().toISOString(),
+  };
+  if (fields.delivery_date !== undefined) payload.delivery_date = fields.delivery_date || null;
+
+  const { error } = await supabase.from("patients").update(payload).eq("id", patientId);
+  if (error) {
+    console.error("[setPostpartumStatus]", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}

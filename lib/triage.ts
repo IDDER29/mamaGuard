@@ -14,7 +14,7 @@
 // directly with `node --experimental-strip-types`.
 
 /** Bump when rules change; stored on every assessment for audit/repro. */
-export const TRIAGE_VERSION = "who-anc-dak-v1";
+export const TRIAGE_VERSION = "who-anc-dak-v2";
 
 export type UrgencyLevel = "low" | "medium" | "high" | "critical";
 
@@ -209,6 +209,62 @@ export const DANGER_SIGNS: DangerSign[] = [
   },
 ];
 
+// --- Postpartum danger signs (Phase 3) --------------------------------------
+// Only evaluated when the patient is in postpartum mode. Conservative: maternal
+// mortality post-delivery is driven by haemorrhage, sepsis and severe mental
+// health crises, so these are weighted heavily.
+export const POSTPARTUM_DANGER_SIGNS: DangerSign[] = [
+  {
+    id: "postpartum_hemorrhage",
+    label: "Postpartum heavy bleeding / haemorrhage",
+    urgency: "critical",
+    patterns: [
+      "نزيف بعد الولادة", "دم بزاف بعد الولادة", "كنزف بزاف", "الدم ما كيوقفش", "خرج ليا دم بزاف",
+      "kanzif bezzaf", "nazif b3d l-wlada", "heavy bleeding", "soaking pad", "soaking pads",
+      "postpartum bleeding", "saigne beaucoup", "hemorragie",
+    ],
+  },
+  {
+    id: "puerperal_infection",
+    label: "Postpartum infection (fever / foul lochia)",
+    urgency: "high",
+    patterns: [
+      "ريحة خايبة", "ريحة كريهة", "افرازات خايبة", "التهاب بعد الولادة", "صديد",
+      "riha khayba", "foul smell", "foul discharge", "smelly discharge", "infection",
+      "lochies malodorantes", "pus",
+    ],
+  },
+  {
+    id: "postpartum_self_harm",
+    label: "Postpartum self-harm / suicidal thoughts",
+    urgency: "critical",
+    patterns: [
+      "بغيت نموت", "نقتل راسي", "ما بقيتش باغية نعيش", "نأذي راسي", "نأذي البيبي",
+      "bghit nmot", "nqtel rassi", "kill myself", "hurt myself", "harm the baby", "suicide",
+      "je veux mourir", "me faire du mal",
+    ],
+  },
+  {
+    id: "postpartum_depression",
+    label: "Postpartum low mood / depression",
+    urgency: "high",
+    patterns: [
+      "كنبكي بزاف", "حزينة بزاف", "ما عنديش فرحة", "ما قادراش نهتم بالبيبي", "كرهت كلشي",
+      "kanbki bezzaf", "7zina bezzaf", "ma3andich far7a", "depression", "deprime",
+      "je pleure beaucoup", "no joy",
+    ],
+  },
+  {
+    id: "mastitis",
+    label: "Breast pain / mastitis",
+    urgency: "medium",
+    patterns: [
+      "البزولة كتوجعني", "صدري كيوجعني", "البزولة حامية", "كتلة فالبزولة",
+      "bzoula katweja3", "breast pain", "sore breast", "mastitis", "sein douloureux", "mastite",
+    ],
+  },
+];
+
 // --- Co-occurrence escalation (conservative) --------------------------------
 // Pre-eclampsia: headache + (blurred vision OR swelling) -> critical.
 interface EscalationRule {
@@ -259,12 +315,19 @@ function isNegated(haystack: string, index: number): boolean {
 /**
  * Assess a (possibly transcribed) message for WHO ANC danger signs.
  * Deterministic and conservative; returns the highest urgency found.
+ * When `opts.postpartum` is true, postpartum-specific signs are also evaluated.
  */
-export function assessTriage(message: string): TriageResult {
+export function assessTriage(
+  message: string,
+  opts?: { postpartum?: boolean },
+): TriageResult {
   const text = normalize(message);
   const found = new Map<string, MatchedSign>();
+  const signsToCheck = opts?.postpartum
+    ? [...DANGER_SIGNS, ...POSTPARTUM_DANGER_SIGNS]
+    : DANGER_SIGNS;
 
-  for (const sign of DANGER_SIGNS) {
+  for (const sign of signsToCheck) {
     for (const pattern of sign.patterns) {
       const p = normalize(pattern);
       if (!p) continue;
