@@ -15,9 +15,11 @@ import {
   Siren,
   Pencil,
   Plus,
+  Users,
+  ShieldCheck,
 } from "lucide-react";
 import type { Patient } from "@/types";
-import { updatePatientFields } from "@/app/actions/patients";
+import { updatePatientFields, updatePartnerInfo } from "@/app/actions/patients";
 import {
   createAppointment,
   type AppointmentRow,
@@ -83,9 +85,36 @@ export function PatientDetailClient({
   const [newApptLocation, setNewApptLocation] = useState("");
   const [savingAppt, setSavingAppt] = useState(false);
 
+  // Plan 2.4 — partner / family engagement.
+  const [partnerName, setPartnerName] = useState(initialPatient.spouse_partner_name ?? "");
+  const [partnerPhone, setPartnerPhone] = useState(initialPatient.spouse_partner_phone ?? "");
+  const [partnerOptIn, setPartnerOptIn] = useState(initialPatient.partner_opt_in ?? false);
+  const [savingPartner, setSavingPartner] = useState(false);
+
   useEffect(() => {
     setAppointments(initialAppointments);
   }, [initialAppointments]);
+
+  const handleSavePartner = useCallback(async () => {
+    if (savingPartner) return;
+    setSavingPartner(true);
+    const res = await updatePartnerInfo(patientId, {
+      spouse_partner_name: partnerName.trim() || null,
+      spouse_partner_phone: partnerPhone.trim() || null,
+      partner_opt_in: partnerOptIn,
+    });
+    setSavingPartner(false);
+    if (res.success) {
+      setPatient((prev) => ({
+        ...prev,
+        spouse_partner_name: partnerName.trim() || null,
+        spouse_partner_phone: partnerPhone.trim() || null,
+        partner_opt_in: partnerOptIn,
+      }));
+    } else {
+      alert(res.error || "Failed to save partner info");
+    }
+  }, [savingPartner, patientId, partnerName, partnerPhone, partnerOptIn]);
 
   const handleAddAppointment = useCallback(async () => {
     if (!newApptAt || savingAppt) return;
@@ -349,6 +378,55 @@ export function PatientDetailClient({
                   Schedule visit
                 </button>
               </div>
+            </div>
+          </section>
+
+          {/* Family & Partner (Plan 2.4) */}
+          <section className="bg-white rounded-2xl ring-1 ring-slate-200/70 shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+              <Users className="h-4.5 w-4.5 text-primary" />
+              <h2 className="text-sm font-semibold text-slate-800">Family &amp; Partner</h2>
+            </div>
+            <div className="p-4 space-y-3">
+              <input
+                type="text"
+                value={partnerName}
+                onChange={(e) => setPartnerName(e.target.value)}
+                placeholder="Partner / family name"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/15 outline-none"
+              />
+              <input
+                type="tel"
+                value={partnerPhone}
+                onChange={(e) => setPartnerPhone(e.target.value)}
+                placeholder="Partner phone (e.g. +212…)"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/15 outline-none"
+              />
+              <label className="flex items-start gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={partnerOptIn}
+                  onChange={(e) => setPartnerOptIn(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/30"
+                />
+                <span className="text-xs text-slate-600 leading-snug">
+                  Consent: notify this partner over WhatsApp on a{" "}
+                  <span className="font-semibold text-slate-800">critical</span> escalation.
+                </span>
+              </label>
+              <button
+                type="button"
+                onClick={handleSavePartner}
+                disabled={savingPartner}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-slate-900 text-white text-sm font-medium py-2 hover:bg-slate-800 disabled:opacity-50"
+              >
+                {savingPartner ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ShieldCheck className="h-4 w-4" />
+                )}
+                Save partner
+              </button>
             </div>
           </section>
         </aside>

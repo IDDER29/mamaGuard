@@ -153,6 +153,40 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
       });
     }
 
+    // Plan 2.4 — partner/family engagement. On a NEW critical escalation (edge,
+    // not repeated), and only with the mother's consent, notify the trusted
+    // partner so family can help her reach care. Privacy-conscious: no medical
+    // detail is shared, just an urgent request to assist. Non-fatal on failure.
+    const becameCritical =
+      triage.urgency === "critical" && currentPatient.risk_level !== "critical";
+    if (
+      becameCritical &&
+      currentPatient.partner_opt_in &&
+      currentPatient.spouse_partner_phone &&
+      process.env.WHATSAPP_PHONE_NUMBER_ID &&
+      process.env.WHATSAPP_ACCESS_TOKEN
+    ) {
+      const motherName = currentPatient.full_name || currentPatient.name || "l-mama";
+      const partnerMsg = `Salam 🧸. Hada blagh mosta3jal mn Mama AI bekhsous ${motherName}. Ymken t7taj mosa3ada s7iya daba. 3afak tssl biha w 3awnha bach toussel l aqrab sbitar wla qabla. Choukran 3la l-mosa3ada dyalk. 🇲🇦`;
+      try {
+        await fetch(`https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messaging_product: "whatsapp",
+            to: String(currentPatient.spouse_partner_phone).replace(/\D/g, ""),
+            type: "text",
+            text: { body: partnerMsg },
+          }),
+        });
+      } catch (partnerErr) {
+        console.error("[Webhook] Partner notification failed:", partnerErr);
+      }
+    }
+
     // --- 4. FETCH CONTEXT & GENERATE AI RESPONSE ---
     const { data: history } = await supabase
       .from("messages")

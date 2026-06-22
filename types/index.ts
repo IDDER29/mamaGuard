@@ -28,6 +28,9 @@ export interface Patient {
   emergency_contact_name: string | null;
   emergency_contact_relation: string | null;
   emergency_contact_phone: string | null;
+  spouse_partner_name: string | null;
+  spouse_partner_phone: string | null;
+  partner_opt_in: boolean;
   preferred_checkup_time: string | null;
   has_smartphone: boolean;
 }

@@ -38,6 +38,7 @@ CREATE TABLE patients (
   emergency_contact_phone   text,
   spouse_partner_name       text,
   spouse_partner_phone      text,
+  partner_opt_in            boolean NOT NULL DEFAULT false,
   preferred_checkup_time    time,
   voice_reporting_frequency text,
   language                  text DEFAULT 'darija',

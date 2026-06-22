@@ -35,6 +35,11 @@ export function normalizePatient(row: Record<string, unknown>): Patient {
       row.emergency_contact_relation != null ? String(row.emergency_contact_relation) : null,
     emergency_contact_phone:
       row.emergency_contact_phone != null ? String(row.emergency_contact_phone) : null,
+    spouse_partner_name:
+      row.spouse_partner_name != null ? String(row.spouse_partner_name) : null,
+    spouse_partner_phone:
+      row.spouse_partner_phone != null ? String(row.spouse_partner_phone) : null,
+    partner_opt_in: Boolean(row.partner_opt_in),
     preferred_checkup_time:
       row.preferred_checkup_time != null ? String(row.preferred_checkup_time) : null,
     has_smartphone: Boolean(row.has_smartphone),

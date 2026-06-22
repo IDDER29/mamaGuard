@@ -179,3 +179,32 @@ export async function updatePatientFields(
   }
   return { success: true };
 }
+
+// Plan 2.4 — partner / family engagement. The clinician records a trusted
+// partner and the mother's consent; on a critical escalation the webhook
+// notifies the partner so family can help her reach care.
+export type UpdatePartnerInfoInput = {
+  spouse_partner_name?: string | null;
+  spouse_partner_phone?: string | null;
+  partner_opt_in?: boolean;
+};
+
+export async function updatePartnerInfo(
+  patientId: string,
+  fields: UpdatePartnerInfoInput
+): Promise<{ success: true } | { success: false; error: string }> {
+  const supabase = await createAdminClient();
+  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (fields.spouse_partner_name !== undefined)
+    payload.spouse_partner_name = fields.spouse_partner_name || null;
+  if (fields.spouse_partner_phone !== undefined)
+    payload.spouse_partner_phone = fields.spouse_partner_phone || null;
+  if (fields.partner_opt_in !== undefined) payload.partner_opt_in = fields.partner_opt_in;
+
+  const { error } = await supabase.from("patients").update(payload).eq("id", patientId);
+  if (error) {
+    console.error("[updatePartnerInfo]", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}

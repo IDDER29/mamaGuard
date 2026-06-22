@@ -25,7 +25,10 @@ export async function GET(req: Request) {
     const checkInPrompt = `It is check-in time. This mother is in week ${patient.gestational_week}.
     Based on her notes (${notes}), ask a supportive question in Darija.`;
     
-    const message = await generateMamaResponse(checkInPrompt, { name: patient.name });
+    const message = await generateMamaResponse(checkInPrompt, {
+      name: patient.name,
+      gestational_week: patient.gestational_week,
+    });
 
     // 4. Send via WhatsApp API
     await fetch(`https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`, {

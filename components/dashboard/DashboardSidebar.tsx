@@ -18,6 +18,7 @@ import {
   Shield,
   Circle,
   Siren,
+  BookOpen,
 } from "lucide-react";
 import type { Doctor } from "@/types";
 import { createClient } from "@/utils/supabase/client";
@@ -116,6 +117,11 @@ export function SidebarContent({ doctor, onNavigate }: SidebarContentProps) {
       href: "/dashboard/patients",
       icon: Users,
       label: "All Patients",
+    },
+    {
+      href: "/dashboard/content",
+      icon: BookOpen,
+      label: "Education",
     },
     {
       href: "/dashboard/analytics",

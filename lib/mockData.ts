@@ -38,6 +38,9 @@ export const mockCriticalPatients: DashboardPatient[] = [
     emergency_contact_name: "John Jenkins",
     emergency_contact_relation: "Husband",
     emergency_contact_phone: "+254700000002",
+    spouse_partner_name: null,
+    spouse_partner_phone: null,
+    partner_opt_in: false,
     preferred_checkup_time: "morning",
     has_smartphone: true,
     avatarUrl:
@@ -74,6 +77,9 @@ export const mockCriticalPatients: DashboardPatient[] = [
     emergency_contact_name: "Raj Patel",
     emergency_contact_relation: "Husband",
     emergency_contact_phone: "+254700000004",
+    spouse_partner_name: null,
+    spouse_partner_phone: null,
+    partner_opt_in: false,
     preferred_checkup_time: "afternoon",
     has_smartphone: true,
     avatarUrl:
@@ -113,6 +119,9 @@ export const mockWarningPatients: DashboardPatient[] = [
     emergency_contact_name: "Chioma Okafor",
     emergency_contact_relation: "Sister",
     emergency_contact_phone: "+254700000006",
+    spouse_partner_name: null,
+    spouse_partner_phone: null,
+    partner_opt_in: false,
     preferred_checkup_time: "morning",
     has_smartphone: true,
     avatarUrl:
@@ -149,6 +158,9 @@ export const mockWarningPatients: DashboardPatient[] = [
     emergency_contact_name: "Carlos Rodriguez",
     emergency_contact_relation: "Husband",
     emergency_contact_phone: "+254700000008",
+    spouse_partner_name: null,
+    spouse_partner_phone: null,
+    partner_opt_in: false,
     preferred_checkup_time: "afternoon",
     has_smartphone: true,
     avatarUrl:

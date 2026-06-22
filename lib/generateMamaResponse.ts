@@ -1,6 +1,8 @@
 // lib/generateMamaResponse.ts
 // Supports OpenAI (GPT-4o etc.) or MiniMax. Set OPENAI_API_KEY to use OpenAI.
 
+import { buildGroundingBlock } from "@/lib/content";
+
 const MAMA_SYSTEM_BASE = `You are Mama AI, a warm and supportive Moroccan pregnancy assistant. 
 You speak fluently in Darija (Moroccan Arabic) and make pregnant people feel heard and safe.
 
@@ -35,9 +37,22 @@ export type PatientContext = {
 };
 
 /** Build system instructions including patient context, doctor notes, and conversation history. */
-function buildSystemPrompt(patientContext: PatientContext): string {
+function buildSystemPrompt(patientContext: PatientContext, message: string): string {
   const { doctor_notes, chat_history, name, risk_level, gestational_week } = patientContext;
   const parts = [MAMA_SYSTEM_BASE];
+
+  // Plan 2.3 — ground the reply in the vetted content library (week guidance +
+  // matched topics). Prefer this knowledge; never contradict it.
+  const grounding = buildGroundingBlock(
+    message,
+    typeof gestational_week === "number" ? gestational_week : null,
+  );
+  if (grounding) {
+    parts.push(
+      "\n--- TRUSTED KNOWLEDGE BASE (vetted Darija guidance — prefer this, do not contradict it) ---",
+    );
+    parts.push(grounding);
+  }
 
   const contextParts: string[] = [];
   if (name) contextParts.push(`Patient name: ${name}`);
@@ -157,7 +172,7 @@ export async function generateMamaResponse(
   patientContext: PatientContext = {}
 ): Promise<string> {
   console.log("[Mama AI] generateMamaResponse called, message length:", message.length, "context keys:", Object.keys(patientContext).join(", ") || "none");
-  const systemPrompt = buildSystemPrompt(patientContext);
+  const systemPrompt = buildSystemPrompt(patientContext, message);
   const userPrompt = buildUserPrompt(message);
 
   if (process.env.OPENAI_API_KEY) {
