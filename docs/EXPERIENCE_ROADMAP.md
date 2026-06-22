@@ -2,6 +2,21 @@
 
 *Turns the gaps and recommendations in `PRODUCT_EXPERIENCE_BLUEPRINT.md` (§11–12), `INFORMATION_ARCHITECTURE.md`, and `CONVERSATION_DESIGN.md` into an executable, phased plan. Each plan is **full-stack**: it lists Frontend, Backend, and Data/Schema work plus Acceptance, Dependencies, Effort, Risk. Effort: S (<1d) · M (2–5d) · L (1–2wk) · XL (>2wk).*
 
+## Delivery status (close-out)
+
+*Snapshot of execution against this roadmap. ✅ delivered · 🟦 partial/scaffolded · ⬜ deferred (external dependency / large).*
+
+**Phase E1 — human-in-the-loop:** ✅ E1.1 notifications · ✅ E1.2 SLA escalation (auto-escalate + broadcast; targeted reassign actions exist in `team.ts`, reassign-from-UI 🟦) · ✅ E1.3 voice replies wired + failed-transcription Darija re-ask · ✅ E1.4 reply templates.
+**Phase E2 — conversation:** ✅ E2.1 command intents + keywords (STOP/HELP/LANG, unit-tested; WhatsApp *interactive buttons* still copy-only) · ✅ E2.2 language switch end-to-end · ⬜ E2.3 translate content (needs clinician translations) · 🟦 E2.4 SMS provider built (needs Twilio creds); USSD/voice stubs.
+**Phase E3 — dashboard UX:** 🟦 E3.1 primitives built (`StateViews`, badges, error boundary); full card refactor not pursued (low value/high churn) · ✅ E3.2 mobile bottom nav · 🟦 E3.3 a11y (EPDS modal dialog/Esc done; full WCAG sweep ongoing) · ⬜ E3.4 dashboard i18n + RTL (large; `ui_language` pref stored) · ✅ E3.5 live SLA tick + owner visibility.
+**Phase E4 — roles & admin:** ✅ E4.1 role model + profiles · 🟦 E4.2 auth (session/gate work; invite flow not built) · ✅ E4.3 admin console (staff/roles, facilities CRUD, audit viewer) · ✅ E4.4 supervisor team views (+ reassign actions).
+**Phase E5 — notifications/settings/states:** ✅ E5.1 notifications center · ✅ E5.2 settings · ⬜ E5.3 granular reminder opt-out (STOP gives global opt-out today) · ✅ E5.4 error boundary + offline banner + empty states.
+**Phase E6 — compliance:** ✅ E6.1 consent withdrawal (STOP) · ✅ E6.2 right-to-erasure + retention purge · ⬜ E6.3 data residency (legal/infra — see `COMPLIANCE.md`) · ⬜ E6.4 identity/dedupe (risky merge — needs design).
+**Phase E7 — reporting:** ✅ E7.1 program + illustrative cost KPI · ⬜ E7.2 scheduled exports (needs scheduler/email) · ✅ E7.3 outcome metrics (SLA adherence, referral/visit outcomes).
+**Phase E8 — strategic:** ⬜ all (teleconsult, predictive risk, wearables, offline PWA, fine-tuned model, two-way FHIR) — XL / external; specced in `docs/MAMALLAMA.md` and this file.
+
+**Deferred items are blocked on external resources** (clinician translations, a Twilio/USSD account, legal/CNDP sign-off, hardware, model training/hosting, scheduler+email infra) **or are large independent initiatives** (full i18n/RTL extraction, patient-merge) — not on missing groundwork. Migrations `0000`–`0008` validated; CI gates lint/type/build + triage vignettes + under-triage safety + conversation parser.
+
 ## How to use this
 - Phases are ordered by **trust/safety value first**, then experience foundation, then breadth.
 - "Frontend" = the Next.js dashboard unless it says **(conversation)** = the WhatsApp patient surface.
