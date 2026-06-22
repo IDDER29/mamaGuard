@@ -13,7 +13,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -24,6 +24,12 @@ jobs:
 
       - name: Type check
         run: npx tsc --noEmit
+
+      - name: Triage vignettes
+        run: npm run test:triage
+
+      - name: Triage safety gate (no under-triage)
+        run: npm run test:safety
 
       - name: Build
         run: npm run build

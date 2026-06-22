@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:triage": "node --experimental-strip-types --test lib/triage.vignettes.mjs",
+    "test:safety": "node --experimental-strip-types eval/triage-safety.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

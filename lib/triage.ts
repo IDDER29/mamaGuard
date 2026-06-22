@@ -220,7 +220,7 @@ export const POSTPARTUM_DANGER_SIGNS: DangerSign[] = [
     urgency: "critical",
     patterns: [
       "نزيف بعد الولادة", "دم بزاف بعد الولادة", "كنزف بزاف", "الدم ما كيوقفش", "خرج ليا دم بزاف",
-      "kanzif bezzaf", "nazif b3d l-wlada", "heavy bleeding", "soaking pad", "soaking pads",
+      "kanzif bezzaf", "nazif b3d l-wlada", "heavy bleeding", "soaking", "soak a pad",
       "postpartum bleeding", "saigne beaucoup", "hemorragie",
     ],
   },
@@ -240,8 +240,8 @@ export const POSTPARTUM_DANGER_SIGNS: DangerSign[] = [
     urgency: "critical",
     patterns: [
       "بغيت نموت", "نقتل راسي", "ما بقيتش باغية نعيش", "نأذي راسي", "نأذي البيبي",
-      "bghit nmot", "nqtel rassi", "kill myself", "hurt myself", "harm the baby", "suicide",
-      "je veux mourir", "me faire du mal",
+      "bghit nmot", "nqtel rassi", "kill myself", "hurt myself", "harm myself", "harming myself",
+      "harm the baby", "suicide", "je veux mourir", "me faire du mal",
     ],
   },
   {
