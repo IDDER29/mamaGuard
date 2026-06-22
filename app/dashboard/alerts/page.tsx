@@ -16,6 +16,7 @@ import {
 import { createClient } from "@/utils/supabase/client";
 import { acknowledgeAlert, resolveAlert } from "@/app/actions/alerts";
 import { createReferral } from "@/app/actions/referrals";
+import { listActiveAlerts } from "@/app/actions/dashboard";
 import { useToast } from "@/hooks/use-toast";
 
 interface AlertRow {
@@ -62,37 +63,21 @@ export default function AlertsQueuePage() {
 
   const fetchAlerts = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("alerts")
-      .select("*, patients(full_name, name, phone_number)")
-      .in("status", ["active", "acknowledged"])
-      .order("created_at", { ascending: false });
-    if (error) {
-      toast({ title: "Couldn't load alerts", description: error.message, variant: "destructive" });
-    } else {
-      setAlerts((data ?? []) as AlertRow[]);
-    }
+    // Admin-backed read: works in demo + authenticated mode (Plan: demo fix).
+    const data = await listActiveAlerts();
+    setAlerts(data as unknown as AlertRow[]);
     setLoading(false);
     setRefreshing(false);
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     const supabase = createClient();
     let active = true;
     // Initial load inline (setState after await -> lint-safe).
     (async () => {
-      const { data, error } = await supabase
-        .from("alerts")
-        .select("*, patients(full_name, name, phone_number)")
-        .in("status", ["active", "acknowledged"])
-        .order("created_at", { ascending: false });
+      const data = await listActiveAlerts();
       if (!active) return;
-      if (error) {
-        toast({ title: "Couldn't load alerts", description: error.message, variant: "destructive" });
-      } else {
-        setAlerts((data ?? []) as AlertRow[]);
-      }
+      setAlerts(data as unknown as AlertRow[]);
       setLoading(false);
     })();
     const channel = supabase
@@ -103,7 +88,7 @@ export default function AlertsQueuePage() {
       active = false;
       supabase.removeChannel(channel);
     };
-  }, [fetchAlerts, toast]);
+  }, [fetchAlerts]);
 
   const onAck = async (a: AlertRow) => {
     setBusyId(a.id);

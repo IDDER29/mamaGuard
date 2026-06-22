@@ -12,7 +12,7 @@
  * "no setState in useEffect" rule).
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -34,7 +34,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { usePatientData } from "../patients/hooks";
+import { listAllPatients } from "@/app/actions/dashboard";
 import type { Patient } from "@/types";
 
 type RiskLevel = Patient["risk_level"];
@@ -70,7 +70,21 @@ function trimesterFromWeek(week: number): 1 | 2 | 3 {
 }
 
 export default function AnalyticsPage() {
-  const { patients, loading } = usePatientData();
+  // Admin-backed read so analytics works in demo + authenticated mode.
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const data = await listAllPatients();
+      if (!active) return;
+      setPatients(data);
+      setLoading(false);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const metrics = useMemo(() => {
     const total = patients.length;

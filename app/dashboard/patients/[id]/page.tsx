@@ -4,6 +4,7 @@ import { normalizePatient } from "@/lib/patients";
 import { listAppointments } from "@/app/actions/appointments";
 import { listEpdsScreenings } from "@/app/actions/epds";
 import { listVitals } from "@/app/actions/vitals";
+import { listReferrals, listFacilities } from "@/app/actions/referrals";
 import { PatientDetailClient } from "./PatientDetailClient";
 
 export interface ConversationRow {
@@ -77,10 +78,12 @@ export default async function PatientDetailPage({ params }: PageProps) {
 
   // Plan 2.1 / Phase 3 — appointments, EPDS screenings, vitals.
   // Each returns [] if the table isn't migrated yet (defensive).
-  const [appointments, epds, vitals] = await Promise.all([
+  const [appointments, epds, vitals, referrals, facilities] = await Promise.all([
     listAppointments(id),
     listEpdsScreenings(id),
     listVitals(id),
+    listReferrals(id),
+    listFacilities(),
   ]);
 
   return (
@@ -92,6 +95,8 @@ export default async function PatientDetailPage({ params }: PageProps) {
       initialAppointments={appointments}
       initialEpds={epds}
       initialVitals={vitals}
+      initialReferrals={referrals}
+      facilities={facilities}
     />
   );
 }

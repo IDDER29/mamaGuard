@@ -219,6 +219,24 @@ export async function updatePartnerInfo(
   return { success: true };
 }
 
+// Plan 4.1 — assign / unassign a community health worker (auth user id) to a
+// patient. Pass null to unassign.
+export async function assignChw(
+  patientId: string,
+  chwId: string | null
+): Promise<{ success: true } | { success: false; error: string }> {
+  const supabase = await createAdminClient();
+  const { error } = await supabase
+    .from("patients")
+    .update({ assigned_chw: chwId, updated_at: new Date().toISOString() })
+    .eq("id", patientId);
+  if (error) {
+    console.error("[assignChw]", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
+
 // Phase 3 — postpartum mode. Flips the patient to postpartum so triage uses
 // postpartum danger signs and the assistant uses postpartum guidance.
 export async function setPostpartumStatus(

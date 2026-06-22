@@ -19,18 +19,21 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { Patient } from "@/types";
-import { updatePatientFields, updatePartnerInfo } from "@/app/actions/patients";
 import {
   createAppointment,
   type AppointmentRow,
 } from "@/app/actions/appointments";
+import { updatePatientFields, updatePartnerInfo, assignChw } from "@/app/actions/patients";
 import type { EpdsScreeningRow } from "@/app/actions/epds";
 import type { VitalRow } from "@/app/actions/vitals";
+import type { ReferralRow, FacilityRow } from "@/app/actions/referrals";
+import { createClient } from "@/utils/supabase/client";
 import { PostpartumCard } from "./components/PostpartumCard";
 import { EpdsCard } from "./components/EpdsCard";
 import { VitalsCard } from "./components/VitalsCard";
+import { ReferralsCard } from "./components/ReferralsCard";
 import { SymptomTrends } from "@/components/dashboard/SymptomTrends";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, UserCheck } from "lucide-react";
 
 export interface MessageRow {
   id: string;
@@ -49,6 +52,8 @@ interface PatientDetailClientProps {
   initialAppointments?: AppointmentRow[];
   initialEpds?: EpdsScreeningRow[];
   initialVitals?: VitalRow[];
+  initialReferrals?: ReferralRow[];
+  facilities?: FacilityRow[];
 }
 
 const RISK_BADGE: Record<string, string> = {
@@ -88,6 +93,8 @@ export function PatientDetailClient({
   initialAppointments = [],
   initialEpds = [],
   initialVitals = [],
+  initialReferrals = [],
+  facilities = [],
 }: PatientDetailClientProps) {
   const router = useRouter();
   const [patient, setPatient] = useState<Patient>(initialPatient);
@@ -101,6 +108,25 @@ export function PatientDetailClient({
   const [partnerPhone, setPartnerPhone] = useState(initialPatient.spouse_partner_phone ?? "");
   const [partnerOptIn, setPartnerOptIn] = useState(initialPatient.partner_opt_in ?? false);
   const [savingPartner, setSavingPartner] = useState(false);
+
+  // Plan 4.1 — CHW assignment (assign the signed-in worker, or unassign).
+  const [assigning, setAssigning] = useState(false);
+  const handleAssignToggle = useCallback(async () => {
+    if (assigning) return;
+    setAssigning(true);
+    const { data } = await createClient().auth.getUser();
+    const uid = data.user?.id ?? null;
+    if (!patient.assigned_chw && !uid) {
+      setAssigning(false);
+      alert("Sign in to assign yourself to this patient.");
+      return;
+    }
+    const next = patient.assigned_chw ? null : uid;
+    const res = await assignChw(patientId, next);
+    setAssigning(false);
+    if (res.success) setPatient((p) => ({ ...p, assigned_chw: next }));
+    else alert(res.error || "Failed to update assignment");
+  }, [assigning, patient.assigned_chw, patientId]);
 
   useEffect(() => {
     setAppointments(initialAppointments);
@@ -287,6 +313,15 @@ export function PatientDetailClient({
           </div>
         </div>
         <div className="hidden sm:flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleAssignToggle}
+            disabled={assigning}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 disabled:opacity-50 ${patient.assigned_chw ? "bg-primary/10 text-primary ring-primary/20" : "bg-slate-100 text-slate-600 ring-slate-200 hover:bg-slate-200"}`}
+          >
+            <UserCheck className="h-3.5 w-3.5" />
+            {patient.assigned_chw ? "Assigned" : "Assign to me"}
+          </button>
           {patient.postpartum && (
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 bg-violet-50 text-violet-700 ring-violet-200">
               Postpartum
@@ -457,6 +492,7 @@ export function PatientDetailClient({
             deliveryDate={patient.delivery_date}
           />
           <VitalsCard patientId={patientId} vitals={initialVitals} />
+          <ReferralsCard patientId={patientId} referrals={initialReferrals} facilities={facilities} />
           <EpdsCard patientId={patientId} screenings={initialEpds} />
 
           {/* Symptom trends (Plan 3.4) */}
