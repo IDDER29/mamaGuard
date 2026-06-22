@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Brain, Loader2, Plus, X } from "lucide-react";
 import { createEpdsScreening, type EpdsScreeningRow } from "@/app/actions/epds";
@@ -39,6 +39,16 @@ export function EpdsCard({ patientId, screenings }: EpdsCardProps) {
     setAnswers(Array(10).fill(null));
     setOpen(false);
   }, []);
+
+  // a11y (Plan E3.3): Escape closes the modal; lock body scroll while open.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") reset();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, reset]);
 
   const handleSubmit = useCallback(async () => {
     if (!allAnswered || saving) return;
@@ -91,8 +101,16 @@ export function EpdsCard({ patientId, screenings }: EpdsCardProps) {
       </div>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) reset(); }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Edinburgh Postnatal Depression Scale"
+            className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] flex flex-col"
+          >
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-semibold text-slate-900">Edinburgh Postnatal Depression Scale</h3>
               <button onClick={reset} className="text-slate-400 hover:text-slate-600">

@@ -6,6 +6,7 @@ import DashboardSidebar from "./DashboardSidebar";
 import DashboardSidebarMobile from "./DashboardSidebarMobile";
 import DashboardHeader, { type Notification } from "./DashboardHeader";
 import { OfflineBanner } from "./StateViews";
+import { MobileBottomNav } from "./MobileBottomNav";
 import { createClient } from "@/utils/supabase/client";
 import {
   listNotifications,
@@ -116,8 +117,9 @@ export default function DashboardChrome({
           enableNotificationSound
           onOpenSidebar={() => setMobileNavOpen(true)}
         />
-        <div className="flex-1 overflow-y-auto bg-slate-50/50">{children}</div>
+        <div className="flex-1 overflow-y-auto bg-slate-50/50 pb-16 lg:pb-0">{children}</div>
       </main>
+      <MobileBottomNav />
     </div>
   );
 }
