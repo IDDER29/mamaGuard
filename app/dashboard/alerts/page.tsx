@@ -36,6 +36,21 @@ const URGENCY = {
   low: { ring: "ring-slate-200", chip: "bg-slate-100 text-slate-600", Icon: TriangleAlert, dot: "bg-slate-400" },
 } as const;
 
+// SLA response targets (minutes) for the act-now queue.
+const SLA_MINUTES: Record<string, number> = { critical: 15, high: 60 };
+
+function slaBadge(a: { urgency: string; status: string; created_at: string }):
+  | { text: string; cls: string }
+  | null {
+  const target = SLA_MINUTES[a.urgency];
+  if (!target || a.status !== "active") return null;
+  const elapsed = (Date.now() - new Date(a.created_at).getTime()) / 60000;
+  const remaining = Math.round(target - elapsed);
+  if (remaining <= 0) return { text: `SLA overdue ${Math.abs(remaining)}m`, cls: "bg-rose-600 text-white animate-pulse" };
+  if (remaining <= target * 0.25) return { text: `SLA ${remaining}m left`, cls: "bg-amber-100 text-amber-800" };
+  return { text: `SLA ${remaining}m`, cls: "bg-slate-100 text-slate-600" };
+}
+
 function timeAgo(iso: string): string {
   const d = new Date(iso).getTime();
   if (Number.isNaN(d)) return "";
@@ -123,6 +138,91 @@ export default function AlertsQueuePage() {
   };
 
   const activeCount = alerts.filter((a) => a.status === "active").length;
+  const actionAlerts = alerts.filter((a) => a.urgency === "high" || a.urgency === "critical");
+  const reviewAlerts = alerts.filter((a) => a.urgency === "medium" || a.urgency === "low");
+
+  const renderAlert = (a: AlertRow) => {
+    const u = URGENCY[a.urgency] ?? URGENCY.low;
+    const name = a.patients?.full_name || a.patients?.name || "Unknown patient";
+    const sla = slaBadge(a);
+    return (
+      <div
+        key={a.id}
+        className={`rounded-2xl bg-white p-4 sm:p-5 ring-1 ${u.ring} shadow-sm flex flex-col sm:flex-row sm:items-center gap-4`}
+      >
+        <div className="flex items-start gap-3 flex-1 min-w-0">
+          <div className={`shrink-0 w-10 h-10 rounded-xl ${u.chip} flex items-center justify-center`}>
+            <u.Icon className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => router.push(`/dashboard/patients/${a.patient_id}`)}
+                className="font-semibold text-slate-900 hover:text-primary truncate"
+              >
+                {name}
+              </button>
+              <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${u.chip}`}>
+                {a.urgency}
+              </span>
+              {a.status === "acknowledged" && (
+                <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                  ack&apos;d
+                </span>
+              )}
+              {sla && (
+                <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${sla.cls}`}>
+                  {sla.text}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-slate-700 mt-0.5 truncate">
+              {a.symptom_name || "Danger sign detected"}
+            </p>
+            <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3 w-3" /> {timeAgo(a.created_at)}
+              </span>
+              {a.patients?.phone_number && (
+                <a
+                  href={`tel:${a.patients.phone_number.replace(/\D/g, "")}`}
+                  className="inline-flex items-center gap-1 text-primary hover:underline"
+                >
+                  <Phone className="h-3 w-3" /> Call
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {a.status === "active" && (
+            <button
+              onClick={() => onAck(a)}
+              disabled={busyId === a.id}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 disabled:opacity-50"
+            >
+              <Check className="h-4 w-4" /> Acknowledge
+            </button>
+          )}
+          <button
+            onClick={() => onRefer(a)}
+            disabled={busyId === a.id}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-50 text-rose-700 text-sm font-medium hover:bg-rose-100 disabled:opacity-50"
+          >
+            <Ambulance className="h-4 w-4" /> Refer
+          </button>
+          <button
+            onClick={() => onResolve(a)}
+            disabled={busyId === a.id}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 shadow-glow-sm disabled:opacity-50"
+          >
+            <CircleCheck className="h-4 w-4" /> Resolve
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100/50 to-white">
@@ -139,7 +239,7 @@ export default function AlertsQueuePage() {
               )}
             </h1>
             <p className="text-sm text-slate-600 mt-1">
-              High &amp; critical danger-sign alerts requiring clinician action.
+              High &amp; critical alerts carry response SLAs; medium signs go to review.
             </p>
           </div>
           <button
@@ -167,83 +267,31 @@ export default function AlertsQueuePage() {
             <p className="text-sm text-slate-600">No active alerts in the queue right now.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {alerts.map((a) => {
-              const u = URGENCY[a.urgency] ?? URGENCY.low;
-              const name = a.patients?.full_name || a.patients?.name || "Unknown patient";
-              return (
-                <div
-                  key={a.id}
-                  className={`rounded-2xl bg-white p-4 sm:p-5 ring-1 ${u.ring} shadow-sm flex flex-col sm:flex-row sm:items-center gap-4`}
-                >
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                    <div className={`shrink-0 w-10 h-10 rounded-xl ${u.chip} flex items-center justify-center`}>
-                      <u.Icon className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <button
-                          onClick={() => router.push(`/dashboard/patients/${a.patient_id}`)}
-                          className="font-semibold text-slate-900 hover:text-primary truncate"
-                        >
-                          {name}
-                        </button>
-                        <span className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${u.chip}`}>
-                          {a.urgency}
-                        </span>
-                        {a.status === "acknowledged" && (
-                          <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                            ack&apos;d
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-slate-700 mt-0.5 truncate">
-                        {a.symptom_name || "Danger sign detected"}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-slate-500">
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3" /> {timeAgo(a.created_at)}
-                        </span>
-                        {a.patients?.phone_number && (
-                          <a
-                            href={`tel:${a.patients.phone_number.replace(/\D/g, "")}`}
-                            className="inline-flex items-center gap-1 text-primary hover:underline"
-                          >
-                            <Phone className="h-3 w-3" /> Call
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+          <div className="space-y-8">
+            <section>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">
+                Action needed ({actionAlerts.length})
+              </h2>
+              <div className="space-y-3">
+                {actionAlerts.length === 0 ? (
+                  <p className="text-sm text-slate-500">No high or critical alerts.</p>
+                ) : (
+                  actionAlerts.map(renderAlert)
+                )}
+              </div>
+            </section>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    {a.status === "active" && (
-                      <button
-                        onClick={() => onAck(a)}
-                        disabled={busyId === a.id}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 disabled:opacity-50"
-                      >
-                        <Check className="h-4 w-4" /> Acknowledge
-                      </button>
-                    )}
-                    <button
-                      onClick={() => onRefer(a)}
-                      disabled={busyId === a.id}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-rose-50 text-rose-700 text-sm font-medium hover:bg-rose-100 disabled:opacity-50"
-                    >
-                      <Ambulance className="h-4 w-4" /> Refer
-                    </button>
-                    <button
-                      onClick={() => onResolve(a)}
-                      disabled={busyId === a.id}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 shadow-glow-sm disabled:opacity-50"
-                    >
-                      <CircleCheck className="h-4 w-4" /> Resolve
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+            {reviewAlerts.length > 0 && (
+              <section>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">
+                  Needs review ({reviewAlerts.length})
+                  <span className="ml-2 font-normal normal-case text-slate-400">
+                    medium-urgency signs — confirm or close
+                  </span>
+                </h2>
+                <div className="space-y-3">{reviewAlerts.map(renderAlert)}</div>
+              </section>
+            )}
           </div>
         )}
       </div>

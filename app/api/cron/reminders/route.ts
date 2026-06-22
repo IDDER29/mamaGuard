@@ -79,5 +79,19 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ success: true, due: due?.length ?? 0, sent });
+  // Auto-flag missed visits (Plan 2.1): >24h past and still not completed.
+  const missedBefore = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const { data: missed } = await supabase
+    .from("appointments")
+    .update({ status: "missed", updated_at: new Date().toISOString() })
+    .in("status", ["scheduled", "confirmed"])
+    .lt("scheduled_at", missedBefore)
+    .select("id");
+
+  return NextResponse.json({
+    success: true,
+    due: due?.length ?? 0,
+    sent,
+    missed: missed?.length ?? 0,
+  });
 }

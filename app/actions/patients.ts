@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/utils/supabase/admin";
+import { buildImmunizationAppointments } from "@/lib/immunization";
 
 export type PatientFormData = {
   fullName: string;
@@ -254,6 +255,23 @@ export async function setPostpartumStatus(
   if (error) {
     console.error("[setPostpartumStatus]", error);
     return { success: false, error: error.message };
+  }
+
+  // On postpartum activation with a delivery date, schedule the newborn
+  // immunization calendar once (idempotent). The reminder cron handles nudges.
+  if (fields.postpartum && fields.delivery_date) {
+    const { count } = await supabase
+      .from("appointments")
+      .select("id", { count: "exact", head: true })
+      .eq("patient_id", patientId)
+      .eq("type", "immunization");
+    if (!count) {
+      const rows = buildImmunizationAppointments(patientId, fields.delivery_date);
+      if (rows.length) {
+        const { error: immErr } = await supabase.from("appointments").insert(rows);
+        if (immErr) console.error("[setPostpartumStatus] immunization seed", immErr);
+      }
+    }
   }
   return { success: true };
 }

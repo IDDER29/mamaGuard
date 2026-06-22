@@ -19,6 +19,47 @@ interface WhatsAppWebhookBody {
   }>;
 }
 
+// Detect appointment confirm/cancel intent in a patient reply and update their
+// nearest upcoming visit (Plan 2.1). Conservative: only acts on explicit
+// keywords and only when an upcoming scheduled/confirmed visit exists.
+const CONFIRM_WORDS = [
+  "wakha", "ok", "okay", "oui", "yes", "na3am", "نعم", "واخا", "غادي نجي",
+  "ايه", "d'accord", "confirm", "نأكد", "ايوا",
+];
+const CANCEL_WORDS = [
+  "ma neqderch", "ma ghadich", "ma nqderch", "can't", "cannot", "annuler",
+  "cancel", "reporter", "reschedule", "ما نقدرش", "ما غاديش", "بدل", "نأجل",
+];
+
+async function handleAppointmentIntent(
+  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  patientId: string,
+  text: string,
+): Promise<void> {
+  const t = text.toLowerCase();
+  const isConfirm = CONFIRM_WORDS.some((w) => t.includes(w.toLowerCase()));
+  const isCancel = CANCEL_WORDS.some((w) => t.includes(w.toLowerCase()));
+  if (!isConfirm && !isCancel) return;
+
+  const { data: appt } = await supabase
+    .from("appointments")
+    .select("id")
+    .eq("patient_id", patientId)
+    .in("status", ["scheduled", "confirmed"])
+    .gte("scheduled_at", new Date().toISOString())
+    .order("scheduled_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!appt) return;
+
+  // Cancel takes precedence (safer to surface a cancellation than a false confirm).
+  const status = isCancel ? "cancelled" : "confirmed";
+  await supabase
+    .from("appointments")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", appt.id);
+}
+
 /**
  * Background processor handles the Patient's incoming message:
  * 1. Transcribes if audio
@@ -146,8 +187,9 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
       }
     }).eq("id", currentPatient.id);
 
-    // Trigger alert record for high/critical (human-in-the-loop queue).
-    if (triage.urgency === "high" || triage.urgency === "critical") {
+    // Trigger an alert for any non-low urgency. high/critical = act-now queue
+    // (SLA); medium = "needs review" bucket (human-in-the-loop on ambiguity).
+    if (triage.urgency !== "low") {
       await supabase.from("alerts").insert({
         patient_id: currentPatient.id,
         message_id: savedPatientMsg!.id,
@@ -155,6 +197,9 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
         symptom_name: triage.signs.map((s) => s.label).join(", ") || triage.symptom,
       });
     }
+
+    // Appointment confirm / cancel intent from the patient's reply (Plan 2.1).
+    await handleAppointmentIntent(supabase, currentPatient.id, userText);
 
     // Plan 2.4 — partner/family engagement. On a NEW critical escalation (edge,
     // not repeated), and only with the mother's consent, notify the trusted
