@@ -88,10 +88,19 @@ export async function GET(req: Request) {
     .lt("scheduled_at", missedBefore)
     .select("id");
 
+  // Retention purge (Plan E6.2): delete patients past their retention horizon.
+  const { data: purged } = await supabase
+    .from("patients")
+    .delete()
+    .not("data_retention_until", "is", null)
+    .lt("data_retention_until", new Date().toISOString().slice(0, 10))
+    .select("id");
+
   return NextResponse.json({
     success: true,
     due: due?.length ?? 0,
     sent,
     missed: missed?.length ?? 0,
+    purged: purged?.length ?? 0,
   });
 }

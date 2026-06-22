@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 
 import { listAllPatients } from "@/app/actions/dashboard";
+import { programMetrics, type ProgramMetrics } from "@/app/actions/analytics";
 import type { Patient } from "@/types";
 
 type RiskLevel = Patient["risk_level"];
@@ -72,13 +73,15 @@ function trimesterFromWeek(week: number): 1 | 2 | 3 {
 export default function AnalyticsPage() {
   // Admin-backed read so analytics works in demo + authenticated mode.
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [program, setProgram] = useState<ProgramMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     let active = true;
     (async () => {
-      const data = await listAllPatients();
+      const [data, prog] = await Promise.all([listAllPatients(), programMetrics()]);
       if (!active) return;
       setPatients(data);
+      setProgram(prog);
       setLoading(false);
     })();
     return () => {
@@ -333,6 +336,49 @@ export default function AnalyticsPage() {
                 ))}
               </div>
             </div>
+
+            {program && (
+              <div className="rounded-2xl bg-white ring-1 ring-slate-200/70 shadow-sm p-5 mt-6">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
+                  Program &amp; Outcomes
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">SLA adherence</p>
+                    <p className="text-2xl font-bold text-slate-900 mt-0.5">
+                      {program.slaAdherencePct != null ? `${program.slaAdherencePct}%` : "—"}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      {program.slaWithinTarget}/{program.slaActionable} within target
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">ANC visits</p>
+                    <p className="text-2xl font-bold text-slate-900 mt-0.5">{program.visitsCompleted}</p>
+                    <p className="text-[11px] text-slate-500">{program.visitsMissed} missed</p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Referrals</p>
+                    <p className="text-2xl font-bold text-slate-900 mt-0.5">
+                      {Object.values(program.referralOutcomes).reduce((a, b) => a + b, 0)}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      {program.referralOutcomes.completed ?? 0} completed
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Est. cost / mother</p>
+                    <p className="text-2xl font-bold text-slate-900 mt-0.5">
+                      {program.estCostPerMotherUsd != null ? `$${program.estCostPerMotherUsd}` : "—"}
+                    </p>
+                    <p className="text-[11px] text-amber-600">illustrative · {program.totalMessages} msgs</p>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-3">
+                  Cost is an illustrative estimate (see docs/SUSTAINABILITY_B2G.md); wire metered usage for billing-grade numbers.
+                </p>
+              </div>
+            )}
           </>
         )}
       </div>

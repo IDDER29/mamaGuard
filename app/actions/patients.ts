@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/utils/supabase/admin";
 import { buildImmunizationAppointments } from "@/lib/immunization";
+import { getCurrentProfile } from "@/app/actions/profiles";
 
 export type PatientFormData = {
   fullName: string;
@@ -215,6 +216,31 @@ export async function updatePartnerInfo(
   const { error } = await supabase.from("patients").update(payload).eq("id", patientId);
   if (error) {
     console.error("[updatePartnerInfo]", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
+}
+
+// Plan E6.2 — right to erasure. Admin-only. Deletes the patient; FK ON DELETE
+// CASCADE removes conversations, messages, alerts, appointments, vitals, EPDS,
+// referrals, notifications. Irreversible. An audit row records the erasure.
+export async function erasePatient(
+  patientId: string,
+): Promise<{ success: true } | { success: false; error: string }> {
+  const me = await getCurrentProfile();
+  if (me.role !== "admin") return { success: false, error: "Admins only." };
+  const supabase = await createAdminClient();
+  // Record intent before the cascade nulls the patient reference.
+  await supabase.from("audit_log").insert({
+    actor: me.full_name ?? me.user_id ?? "admin",
+    action: "patient.erased",
+    entity_type: "patient",
+    entity_id: patientId,
+    detail: { reason: "right_to_erasure" },
+  });
+  const { error } = await supabase.from("patients").delete().eq("id", patientId);
+  if (error) {
+    console.error("[erasePatient]", error);
     return { success: false, error: error.message };
   }
   return { success: true };

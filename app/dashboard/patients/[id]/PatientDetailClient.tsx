@@ -23,7 +23,7 @@ import {
   createAppointment,
   type AppointmentRow,
 } from "@/app/actions/appointments";
-import { updatePatientFields, updatePartnerInfo, assignChw } from "@/app/actions/patients";
+import { updatePatientFields, updatePartnerInfo, assignChw, erasePatient } from "@/app/actions/patients";
 import type { EpdsScreeningRow } from "@/app/actions/epds";
 import type { VitalRow } from "@/app/actions/vitals";
 import type { ReferralRow, FacilityRow } from "@/app/actions/referrals";
@@ -55,6 +55,7 @@ interface PatientDetailClientProps {
   initialVitals?: VitalRow[];
   initialReferrals?: ReferralRow[];
   facilities?: FacilityRow[];
+  isAdmin?: boolean;
 }
 
 const RISK_BADGE: Record<string, string> = {
@@ -96,6 +97,7 @@ export function PatientDetailClient({
   initialVitals = [],
   initialReferrals = [],
   facilities = [],
+  isAdmin = false,
 }: PatientDetailClientProps) {
   const router = useRouter();
   const [patient, setPatient] = useState<Patient>(initialPatient);
@@ -128,6 +130,14 @@ export function PatientDetailClient({
     if (res.success) setPatient((p) => ({ ...p, assigned_chw: next }));
     else alert(res.error || "Failed to update assignment");
   }, [assigning, patient.assigned_chw, patientId]);
+
+  // Plan E6.2 — right to erasure (admin only; server also enforces it).
+  const handleErase = useCallback(async () => {
+    if (window.prompt("Erase this patient and ALL their data permanently? Type ERASE to confirm.") !== "ERASE") return;
+    const res = await erasePatient(patientId);
+    if (res.success) router.push("/dashboard/patients");
+    else alert(res.error || "Failed to erase patient");
+  }, [patientId, router]);
 
   useEffect(() => {
     setAppointments(initialAppointments);
@@ -323,6 +333,15 @@ export function PatientDetailClient({
             <UserCheck className="h-3.5 w-3.5" />
             {patient.assigned_chw ? "Assigned" : "Assign to me"}
           </button>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={handleErase}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 bg-rose-50 text-rose-700 ring-rose-200 hover:bg-rose-100"
+            >
+              Erase
+            </button>
+          )}
           {patient.postpartum && (
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ring-1 bg-violet-50 text-violet-700 ring-violet-200">
               Postpartum
