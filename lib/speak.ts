@@ -1,3 +1,5 @@
+import { logUsage } from "@/lib/usage";
+
 export async function generateSpeech(text: string): Promise<Buffer> {
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`,
@@ -16,5 +18,6 @@ export async function generateSpeech(text: string): Promise<Buffer> {
     );
   
     const arrayBuffer = await response.arrayBuffer();
+    if (response.ok) void logUsage("tts", { detail: { provider: "elevenlabs" } });
     return Buffer.from(arrayBuffer);
   }

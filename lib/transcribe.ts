@@ -1,4 +1,5 @@
 // lib/transcribe.ts
+import { logUsage } from "@/lib/usage";
 // Darija (Moroccan Arabic) speech-to-text via OpenAI Whisper. WhatsApp voice
 // notes arrive as OGG/Opus. Plan 1.4 hardening:
 //  - forced Arabic + a Darija medical-vocabulary prompt to bias recognition
@@ -107,6 +108,7 @@ export async function transcribeAudio(audioBuffer: Buffer, language?: string): P
       }
 
       console.log("[transcribe] OK, length:", text.length);
+      void logUsage("stt", { detail: { provider: "whisper", lang } });
       return text;
     } catch (err) {
       console.error(`[transcribe] attempt ${attempt} failed:`, err instanceof Error ? err.message : String(err));

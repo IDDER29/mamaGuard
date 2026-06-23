@@ -42,12 +42,12 @@
 | FHIR / national EHR | `POST /api/fhir/observation` + `GET /api/fhir/patient/[id]` | an EHR endpoint + `FHIR_TOKEN` |
 | Offline CHW | PWA manifest + offline SW | full offline-sync is future (read/write queue) |
 
-## Known residual hardening (recommended, non-blocking)
-- Full **WCAG audit** (we fixed modal dialog/Esc; sweep the rest).
-- **Role-level RLS**: trusted writes use the service-role admin client (bypasses RLS by design); add per-row role policies if multi-tenant facility isolation is required.
-- **Interactive WhatsApp buttons**: numbered-menu copy is specced; native button payloads can replace free-text where supported.
-- Replace the **illustrative** cost-per-mother constant with metered usage.
-- Clean up legacy dead sidebar links (`/dashboard/messages`, `/dashboard/protocols`) or build those pages.
+## Hardening status
+- ✅ **Metered cost** — `usage_events` (migration 0010) + `lib/usage.ts` log LLM (token-based), STT, and TTS spend; `programMetrics` now computes real cost from `usage_events` (AI) + `message_deliveries` (channel sends), falling back to the illustrative estimate only when no metered data exists yet. The analytics card shows "metered" vs "illustrative".
+- ✅ **Role-level RLS** — migration 0011 adds `current_clinician_role()` (security-definer) and restricts **writes** on `clinician_profiles` / `clinician_invites` to admins, while keeping reads for authenticated. Clinical tables remain authenticated-accessible (triage helpdesk needs cross-patient visibility; CHW scoping is enforced in the UI). Trusted server writes use the service-role client by design. *Validated locally with an `auth.uid()` stub; exercise role behavior in a Supabase staging project (auth.uid() is Supabase-provided).*
+- ✅ **WCAG sweep** — skip-to-content link + `main` landmark, `role=status`/`aria-live` on the offline banner, dialog semantics + Esc + backdrop-close on modals, and `aria-label`s on icon-only buttons/inputs across the triage queue, worklist, and patient detail. (A full third-party audit is still recommended before formal compliance claims.)
+- ✅ Legacy dead sidebar links removed (now → Notifications).
+- ⬜ **Interactive WhatsApp buttons**: numbered-menu copy is specced; native button payloads can replace free-text where supported (non-blocking).
 
 ## Safety posture (non-negotiable, enforced)
 Triage urgency is computed by the deterministic WHO-ANC engine (`lib/triage.ts`) and written independently of the LLM — **the LLM can never lower a rule-based urgency**. The under-triage safety gate (`npm run test:safety`) blocks any release that regresses emergency detection. Every clinical action and triage decision is written to `audit_log`; consent is captured before processing and is revocable (STOP).

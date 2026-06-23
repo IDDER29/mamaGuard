@@ -371,11 +371,15 @@ export default function AnalyticsPage() {
                     <p className="text-2xl font-bold text-slate-900 mt-0.5">
                       {program.estCostPerMotherUsd != null ? `$${program.estCostPerMotherUsd}` : "—"}
                     </p>
-                    <p className="text-[11px] text-amber-600">illustrative · {program.totalMessages} msgs</p>
+                    <p className={`text-[11px] ${program.illustrative ? "text-amber-600" : "text-emerald-600"}`}>
+                      {program.illustrative ? "illustrative" : "metered"} · {program.totalMessages} msgs
+                    </p>
                   </div>
                 </div>
                 <p className="text-[11px] text-slate-400 mt-3">
-                  Cost is an illustrative estimate (see docs/SUSTAINABILITY_B2G.md); wire metered usage for billing-grade numbers.
+                  {program.illustrative
+                    ? "No metered usage yet — figure is an estimate (see docs/SUSTAINABILITY_B2G.md)."
+                    : "Computed from real usage_events (AI) + message_deliveries (channel sends)."}
                 </p>
               </div>
             )}

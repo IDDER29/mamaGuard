@@ -21,8 +21,12 @@ export function OfflineBanner() {
 
   if (!offline) return null;
   return (
-    <div className="flex items-center justify-center gap-2 bg-amber-500 text-white text-sm font-medium px-4 py-1.5">
-      <WifiOff className="h-4 w-4" />
+    <div
+      role="status"
+      aria-live="polite"
+      className="flex items-center justify-center gap-2 bg-amber-500 text-white text-sm font-medium px-4 py-1.5"
+    >
+      <WifiOff className="h-4 w-4" aria-hidden="true" />
       You&apos;re offline — changes may not save until the connection returns.
     </div>
   );

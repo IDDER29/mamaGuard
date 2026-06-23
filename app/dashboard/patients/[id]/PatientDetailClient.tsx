@@ -235,6 +235,16 @@ export function PatientDetailClient({
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // a11y: Escape closes the edit modal (setState only inside the handler).
+  useEffect(() => {
+    if (!editOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !editSaving) setEditOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [editOpen, editSaving]);
+
   const displayName = patient.full_name ?? patient.name ?? "—";
   const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(patient.id)}`;
   const riskKey = patient.risk_level ?? "low";
@@ -495,12 +505,14 @@ export function PatientDetailClient({
               <div className="pt-2 border-t border-slate-100 space-y-2">
                 <input
                   type="datetime-local"
+                  aria-label="Appointment date and time"
                   value={newApptAt}
                   onChange={(e) => setNewApptAt(e.target.value)}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/15 outline-none"
                 />
                 <input
                   type="text"
+                  aria-label="Appointment location"
                   value={newApptLocation}
                   onChange={(e) => setNewApptLocation(e.target.value)}
                   placeholder="Location (optional)"
@@ -508,6 +520,7 @@ export function PatientDetailClient({
                 />
                 <input
                   type="url"
+                  aria-label="Teleconsult link"
                   value={newApptMeetingUrl}
                   onChange={(e) => setNewApptMeetingUrl(e.target.value)}
                   placeholder="Teleconsult link (optional)"
@@ -539,6 +552,7 @@ export function PatientDetailClient({
             <div className="p-4 space-y-3">
               <input
                 type="text"
+                aria-label="Partner or family name"
                 value={partnerName}
                 onChange={(e) => setPartnerName(e.target.value)}
                 placeholder="Partner / family name"
@@ -546,6 +560,7 @@ export function PatientDetailClient({
               />
               <input
                 type="tel"
+                aria-label="Partner phone number"
                 value={partnerPhone}
                 onChange={(e) => setPartnerPhone(e.target.value)}
                 placeholder="Partner phone (e.g. +212…)"
@@ -666,6 +681,7 @@ export function PatientDetailClient({
                 <div className="p-3 flex gap-2">
                 <input
                   type="text"
+                  aria-label="Type a message"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
@@ -674,6 +690,7 @@ export function PatientDetailClient({
                 />
                 <button
                   type="button"
+                  aria-label="Send message"
                   onClick={handleSendMessage}
                   disabled={sending || !inputValue.trim()}
                   className="px-4 py-2.5 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary/90 disabled:opacity-50 shadow-glow-sm transition-all flex items-center gap-2"

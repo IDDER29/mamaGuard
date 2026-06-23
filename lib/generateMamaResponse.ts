@@ -2,6 +2,7 @@
 // Supports OpenAI (GPT-4o etc.) or MiniMax. Set OPENAI_API_KEY to use OpenAI.
 
 import { buildGroundingBlock } from "@/lib/content";
+import { logUsage } from "@/lib/usage";
 
 const MAMA_SYSTEM_BASE = `You are Mama AI, a warm and supportive Moroccan pregnancy assistant. 
 You speak fluently in Darija (Moroccan Arabic) and make pregnant people feel heard and safe.
@@ -157,11 +158,13 @@ async function callOpenAI(systemPrompt: string, userPrompt: string): Promise<str
 
   const data = (await response.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
+    usage?: { total_tokens?: number };
     error?: { message?: string };
   };
   const content = data.choices?.[0]?.message?.content?.trim();
   if (content) {
     console.log("[Mama AI] OpenAI returned content, length:", content.length);
+    void logUsage("llm", { units: data.usage?.total_tokens ?? 0, detail: { provider: "openai", model } });
     return content;
   }
   if (data.error?.message) {

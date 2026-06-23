@@ -113,7 +113,18 @@ export default function DashboardChrome({
           onOpenChange={setMobileNavOpen}
         />
 
-        <main className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-[100] focus:top-2 focus:left-2 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg"
+        >
+          Skip to content
+        </a>
+
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 flex flex-col h-full overflow-hidden min-w-0"
+        >
           <LanguageSwitcher />
           <OfflineBanner />
           <DashboardHeader

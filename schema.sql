@@ -213,6 +213,17 @@ CREATE TABLE notifications (
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 
+-- 16. USAGE EVENTS (cost metering, Plan E7.1)
+CREATE TABLE usage_events (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  kind       text NOT NULL,            -- llm | stt | tts | whatsapp | sms
+  units      numeric NOT NULL DEFAULT 1,
+  cost_usd   numeric NOT NULL DEFAULT 0,
+  patient_id uuid REFERENCES patients (id) ON DELETE SET NULL,
+  detail     jsonb,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- 7. EPDS SCREENINGS (Edinburgh Postnatal Depression Scale, Phase 3)
 CREATE TABLE epds_screenings (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -260,6 +271,7 @@ CREATE INDEX idx_notifications_created ON notifications (created_at DESC);
 CREATE INDEX idx_clinician_profiles_role ON clinician_profiles (role);
 CREATE INDEX idx_deliveries_patient ON message_deliveries (patient_id, created_at DESC);
 CREATE INDEX idx_identifiers_patient ON patient_identifiers (patient_id);
+CREATE INDEX idx_usage_kind ON usage_events (kind, created_at DESC);
 
 -- Keep updated_at fresh on patients
 CREATE OR REPLACE FUNCTION set_updated_at()
@@ -292,6 +304,7 @@ ALTER TABLE clinician_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE message_deliveries  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE patient_identifiers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clinician_invites   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE usage_events        ENABLE ROW LEVEL SECURITY;
 
 -- Authenticated clinicians: full access to clinical data.
 CREATE POLICY "authenticated full access" ON patients
@@ -324,6 +337,9 @@ CREATE POLICY "authenticated full access" ON clinician_invites
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 -- Audit log: clinicians may read; only the service role writes (immutability).
 CREATE POLICY "authenticated read audit" ON audit_log
+  FOR SELECT TO authenticated USING (true);
+-- Usage events: clinicians may read; only the service role writes.
+CREATE POLICY "authenticated read usage" ON usage_events
   FOR SELECT TO authenticated USING (true);
 
 -- DEMO ONLY (uncomment to allow the unauthenticated dashboard to read data while

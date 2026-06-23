@@ -14,9 +14,15 @@ so re-running is safe.
 | 0004 | `0004_consent_and_channels.sql` | Consent columns, `preferred_channel` |
 | 0005 | `0005_phase4_referrals_chw.sql` | `assigned_chw`, `facilities`, `referrals` |
 | 0006 | `0006_seed_facilities.sql` | Seeds a starter facility directory (only if empty) |
+| 0007 | `0007_notifications_sla.sql` | `notifications` + alert SLA columns |
+| 0008 | `0008_clinician_roles.sql` | `clinician_profiles` (roles) |
+| 0009 | `0009_deliveries_identities_invites.sql` | `message_deliveries`, `patient_identifiers`, `clinician_invites`, `appointments.meeting_url` |
+| 0010 | `0010_usage_metering.sql` | `usage_events` (cost metering) |
+| 0011 | `0011_role_rls.sql` | `current_clinician_role()` + admin-only RLS on profiles/invites |
 
 > An already-deployed database likely has the 0000 columns; the guards make it a
 > no-op there. Run 0000 first anyway — it harmlessly fills any gaps.
+> Migration 0011 uses Supabase's `auth.uid()` (provided automatically on Supabase).
 
 ## How to run
 
