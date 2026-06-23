@@ -34,6 +34,9 @@ jobs:
       - name: Conversation parser tests
         run: npm run test:conversation
 
+      - name: Risk heuristic tests
+        run: npm run test:risk
+
       - name: Build
         run: npm run build
         env:
