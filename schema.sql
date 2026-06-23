@@ -272,6 +272,13 @@ CREATE INDEX idx_clinician_profiles_role ON clinician_profiles (role);
 CREATE INDEX idx_deliveries_patient ON message_deliveries (patient_id, created_at DESC);
 CREATE INDEX idx_identifiers_patient ON patient_identifiers (patient_id);
 CREATE INDEX idx_usage_kind ON usage_events (kind, created_at DESC);
+-- Production scale: hot-path indexes (Plan: migration 0012)
+CREATE INDEX idx_messages_wamid ON messages ((metadata->>'wamid'));
+CREATE INDEX idx_messages_conv_created ON messages (conversation_id, created_at DESC);
+CREATE INDEX idx_patients_created ON patients (created_at DESC);
+CREATE INDEX idx_patients_risk ON patients (risk_level);
+CREATE INDEX idx_alerts_patient ON alerts (patient_id);
+CREATE INDEX idx_alerts_created ON alerts (created_at DESC);
 
 -- Keep updated_at fresh on patients
 CREATE OR REPLACE FUNCTION set_updated_at()

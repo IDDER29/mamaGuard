@@ -4,6 +4,7 @@ import { generateMamaResponse } from "@/lib/generateMamaResponse";
 import { assessTriage } from "@/lib/triage";
 import { transcribeAudio } from "@/lib/transcribe";
 import { generateSpeech } from "@/lib/speak";
+import { verifyWhatsAppSignature } from "@/lib/verifyWebhook";
 import {
   parseIntent,
   helpMessage,
@@ -424,9 +425,15 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
 }
 
 export async function POST(request: NextRequest) {
+  // Read the raw body so we can verify Meta's HMAC signature (production security).
+  const raw = await request.text();
+  if (!verifyWhatsAppSignature(raw, request.headers.get("x-hub-signature-256"))) {
+    console.error("[Webhook] Invalid X-Hub-Signature-256");
+    return new NextResponse("Invalid signature", { status: 401 });
+  }
   let body;
   try {
-    body = await request.json();
+    body = JSON.parse(raw);
   } catch {
     return new NextResponse("Invalid JSON", { status: 400 });
   }
