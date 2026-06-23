@@ -9,7 +9,6 @@ import {
   Heart,
   LayoutDashboard,
   LogOut,
-  MessageSquare,
   Settings,
   Users,
   Bell,
@@ -143,15 +142,9 @@ export function SidebarContent({ doctor, role, onNavigate }: SidebarContentProps
 
   const quickActions: NavItem[] = [
     {
-      href: "/dashboard/messages",
-      icon: MessageSquare,
-      label: "Messages",
-      badge: 5,
-    },
-    {
-      href: "/dashboard/protocols",
-      icon: FileText,
-      label: "Protocols",
+      href: "/dashboard/notifications",
+      icon: Bell,
+      label: "Notifications",
     },
     ...(can(role, "supervise")
       ? [{ href: "/dashboard/team", icon: Users, label: "Team" } as NavItem]
