@@ -155,18 +155,33 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
 
     let currentPatient = patient;
     if (!currentPatient) {
-      const { data: newP } = await supabase
+      const { data: newP, error: insErr } = await supabase
         .from("patients")
         .insert({ phone_number: senderPhone, name: "New Mother", risk_level: "low" })
         .select().single();
-      currentPatient = newP;
+      if (newP) {
+        currentPatient = newP;
+      } else {
+        // Concurrency: a parallel message already created this patient (phone is
+        // UNIQUE). Re-select instead of crashing on the unique-violation.
+        if (insErr) console.warn("[Webhook] patient insert race, re-selecting:", insErr.code);
+        const { data: existing } = await supabase
+          .from("patients").select("*").eq("phone_number", senderPhone).maybeSingle();
+        currentPatient = existing;
+      }
+    }
+    if (!currentPatient) {
+      console.error("[Webhook] could not find or create patient; dropping message");
+      return;
     }
 
-    // Ensure Conversation exists
+    // Ensure Conversation exists (re-select on race so we don't crash/duplicate).
     let { data: conv } = await supabase
       .from("conversations")
       .select("id")
       .eq("patient_id", currentPatient.id)
+      .order("created_at", { ascending: true })
+      .limit(1)
       .maybeSingle();
 
     if (!conv) {
@@ -174,7 +189,13 @@ async function processMessageInBackground(body: WhatsAppWebhookBody) {
         .from("conversations")
         .insert({ patient_id: currentPatient.id })
         .select().single();
-      conv = newC;
+      conv = newC ?? (await supabase
+        .from("conversations").select("id").eq("patient_id", currentPatient.id)
+        .order("created_at", { ascending: true }).limit(1).maybeSingle()).data;
+    }
+    if (!conv) {
+      console.error("[Webhook] could not find or create conversation; dropping message");
+      return;
     }
 
     // --- 2b. COMMAND INTENTS (STOP / HELP / language) — Plan E2.1/E2.2/E6.1 ---
